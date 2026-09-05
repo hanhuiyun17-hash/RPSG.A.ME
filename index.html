@@ -1,0 +1,5955 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+>
+
+<title>변기키우기</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #111;
+  font-family: monospace;
+}
+
+button,
+input {
+  font-family: monospace;
+}
+
+button {
+  cursor: pointer;
+}
+
+#game {
+  position: relative;
+
+  width: 100%;
+  max-width: 430px;
+
+  /* 구형 브라우저용 */
+  height: 100vh;
+
+  /* 최신 Safari / Chrome / Android */
+  height: 100dvh;
+
+  margin: 0 auto;
+  overflow: hidden;
+  background: white;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* =========================
+   시작화면
+========================= */
+
+#startScreen {
+  background: white;
+  text-align: center;
+
+  padding-top:
+    env(safe-area-inset-top);
+}
+
+#title {
+  margin-top: 22vh;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+#subtitle {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+#nameInput {
+  display: block;
+
+  width: 230px;
+  height: 50px;
+
+  margin:
+    45px
+    auto
+    15px;
+
+  border: 3px solid #111;
+
+  outline: none;
+
+  text-align: center;
+
+  font-size: 16px;
+}
+
+#startButton {
+  width: 210px;
+  height: 58px;
+
+  border: 3px solid #111;
+
+  background: white;
+
+  font-weight: bold;
+
+  font-size: 16px;
+}
+
+/* =========================
+   메인
+========================= */
+
+#mainCanvas,
+#gachaCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+#topBar {
+  position: absolute;
+
+  left: 8px;
+  right: 8px;
+
+  top:
+    calc(
+      8px +
+      env(safe-area-inset-top)
+    );
+
+  display: flex;
+
+  justify-content:
+    space-between;
+
+  pointer-events: none;
+
+  z-index: 20;
+}
+
+.pixelBox {
+  border: 2px solid #111;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .95
+    );
+
+  padding: 7px 9px;
+
+  font-size: 11px;
+
+  font-weight: bold;
+}
+
+#coinBox {
+  display: flex;
+  align-items: center;
+
+  min-width: 90px;
+}
+
+#coinIcon {
+  position: relative;
+
+  width: 21px;
+  height: 21px;
+
+  border: 2px solid #111;
+
+  background: #f0c52d;
+
+  margin-right: 6px;
+}
+
+#coinIcon::after {
+  content: "";
+
+  position: absolute;
+
+  left: 6px;
+  top: 3px;
+
+  width: 5px;
+  height: 9px;
+
+  border:
+    2px solid
+    #916510;
+}
+
+#stats {
+  position: absolute;
+
+  left: 50%;
+
+  top:
+    calc(
+      58px +
+      env(safe-area-inset-top)
+    );
+
+  transform:
+    translateX(-50%);
+
+  z-index: 20;
+
+  white-space: nowrap;
+}
+
+#plungerInfo {
+  position: absolute;
+
+  right: 8px;
+
+  top:
+    calc(
+      58px +
+      env(safe-area-inset-top)
+    );
+
+  z-index: 20;
+}
+
+#moveHelp {
+  position: absolute;
+
+  bottom:
+    calc(
+      165px +
+      env(
+        safe-area-inset-bottom
+      )
+    );
+
+  width: 100%;
+
+  text-align: center;
+
+  font-size: 10px;
+
+  z-index: 15;
+
+  pointer-events: none;
+}
+
+#buttons {
+  position: absolute;
+
+  left: 8px;
+  right: 8px;
+
+  bottom:
+    calc(
+      9px +
+      env(
+        safe-area-inset-bottom
+      )
+    );
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 6px;
+
+  z-index: 30;
+}
+
+.mainButton {
+  height: 47px;
+
+  border: 2px solid #111;
+
+  background: white;
+
+  font-weight: bold;
+
+  font-size: 10px;
+}
+
+#earnButton {
+  background: #d43a35;
+  color: white;
+}
+
+#upgradeButton {
+  background: #edc842;
+}
+
+#gachaButton {
+  background: #6ba7dd;
+}
+
+#plungerShopButton {
+  background: #d95d4c;
+  color: white;
+}
+
+#toast {
+  position: absolute;
+
+  left: 50%;
+
+  top:
+    calc(
+      105px +
+      env(safe-area-inset-top)
+    );
+
+  transform:
+    translateX(-50%);
+
+  background: #111;
+
+  color: white;
+
+  border: 2px solid white;
+
+  padding: 9px 12px;
+
+  font-size: 11px;
+
+  min-width: 170px;
+
+  max-width: 310px;
+
+  text-align: center;
+
+  display: none;
+
+  z-index: 100;
+}
+
+/* =========================
+   뚜러뻥 아이콘
+========================= */
+
+.plungerIcon {
+  display: inline-block;
+
+  position: relative;
+
+  width: 15px;
+  height: 20px;
+
+  margin-right: 4px;
+
+  vertical-align: middle;
+}
+
+.plungerIcon::before {
+  content: "";
+
+  position: absolute;
+
+  width: 4px;
+  height: 13px;
+
+  left: 6px;
+  top: 0;
+
+  background: #87552f;
+
+  border: 1px solid #111;
+}
+
+.plungerIcon::after {
+  content: "";
+
+  position: absolute;
+
+  width: 14px;
+  height: 7px;
+
+  left: 1px;
+  bottom: 0;
+
+  background: #d63732;
+
+  border: 2px solid #111;
+}
+
+/* =========================
+   강화
+========================= */
+
+#upgradeOverlay,
+#confirmOverlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      .62
+    );
+
+  z-index: 100;
+
+  display: none;
+}
+
+.modal {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 290px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  background: white;
+
+  border: 4px solid #111;
+
+  padding: 18px;
+
+  text-align: center;
+}
+
+#upgradeMachine {
+  position: relative;
+
+  width: 150px;
+  height: 100px;
+
+  margin: auto;
+}
+
+#upgradeToilet {
+  position: absolute;
+
+  width: 64px;
+  height: 48px;
+
+  left: 43px;
+  top: 28px;
+
+  border: 4px solid #111;
+
+  background: #eee;
+
+  animation:
+    shake
+    .15s
+    infinite
+    alternate;
+}
+
+.upSpark {
+  position: absolute;
+
+  width: 8px;
+  height: 8px;
+
+  background: #efc52f;
+
+  animation:
+    flash
+    .2s
+    infinite
+    alternate;
+}
+
+.upSpark:nth-child(1) {
+  left: 10px;
+  top: 25px;
+}
+
+.upSpark:nth-child(2) {
+  right: 10px;
+  top: 20px;
+  animation-delay: .05s;
+}
+
+.upSpark:nth-child(3) {
+  left: 72px;
+  top: 4px;
+  animation-delay: .1s;
+}
+
+.upSpark:nth-child(4) {
+  left: 20px;
+  bottom: 6px;
+  animation-delay: .15s;
+}
+
+.upSpark:nth-child(5) {
+  right: 22px;
+  bottom: 7px;
+  animation-delay: .08s;
+}
+
+@keyframes shake {
+  from {
+    transform:
+      translateX(-3px);
+  }
+
+  to {
+    transform:
+      translateX(3px);
+  }
+}
+
+@keyframes flash {
+  from {
+    transform:
+      scale(.7);
+  }
+
+  to {
+    transform:
+      scale(1.7);
+  }
+}
+
+.modalButton {
+  height: 40px;
+
+  min-width: 100px;
+
+  margin: 10px 4px 0;
+
+  border: 2px solid #111;
+
+  background: white;
+
+  font-weight: bold;
+}
+
+/* =========================
+   페이지
+========================= */
+
+.pageScreen {
+  background: #e6e6e6;
+
+  overflow-y: auto;
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+}
+
+.pageHeader {
+  position: sticky;
+
+  top: 0;
+
+  height:
+    calc(
+      65px +
+      env(safe-area-inset-top)
+    );
+
+  padding-top:
+    env(safe-area-inset-top);
+
+  background: white;
+
+  border-bottom:
+    3px solid #111;
+
+  z-index: 20;
+}
+
+.pageHeader h2 {
+  margin: 0;
+
+  padding: 20px 15px;
+
+  font-size: 17px;
+}
+
+.backButton {
+  position: absolute;
+
+  right: 10px;
+
+  top:
+    calc(
+      10px +
+      env(safe-area-inset-top)
+    );
+
+  width: 72px;
+  height: 42px;
+
+  border: 2px solid #111;
+
+  background: white;
+
+  font-weight: bold;
+}
+
+/* =========================
+   컬렉션
+========================= */
+
+#collectionList {
+  padding: 9px;
+}
+
+.card {
+  display: flex;
+
+  align-items: center;
+
+  min-height: 108px;
+
+  background: white;
+
+  border: 2px solid #111;
+
+  margin-bottom: 8px;
+
+  padding: 7px;
+
+  gap: 8px;
+}
+
+.card canvas {
+  width: 92px;
+  height: 90px;
+
+  border: 1px solid #aaa;
+
+  flex: 0 0 auto;
+}
+
+.cardInfo {
+  font-size: 10px;
+
+  line-height: 1.55;
+}
+
+/* =========================
+   가구
+========================= */
+
+#furnitureContent {
+  padding: 10px;
+}
+
+.furnitureCard {
+  background: white;
+
+  border: 2px solid #111;
+
+  padding: 10px;
+
+  margin-bottom: 9px;
+}
+
+.furnitureTitle {
+  font-weight: bold;
+
+  font-size: 14px;
+}
+
+.furnitureDescription {
+  margin: 7px 0;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+.buyFurniture {
+  height: 38px;
+
+  border: 2px solid #111;
+
+  background: #efc842;
+
+  font-weight: bold;
+}
+
+.buyFurniture:disabled {
+  background: #bbb;
+}
+
+/* =========================
+   뽑기
+========================= */
+
+#gachaScreen {
+  background: #d7d7d7;
+}
+
+#gachaBack {
+  position: absolute;
+
+  left: 9px;
+
+  top:
+    calc(
+      9px +
+      env(safe-area-inset-top)
+    );
+
+  width: 70px;
+  height: 42px;
+
+  border: 2px solid #111;
+
+  background: white;
+
+  z-index: 20;
+}
+
+#gachaTitle {
+  position: absolute;
+
+  top:
+    calc(
+      18px +
+      env(safe-area-inset-top)
+    );
+
+  width: 100%;
+
+  text-align: center;
+
+  font-weight: bold;
+
+  z-index: 10;
+}
+
+#gachaCoins {
+  position: absolute;
+
+  right: 9px;
+
+  top:
+    calc(
+      9px +
+      env(safe-area-inset-top)
+    );
+
+  z-index: 20;
+}
+
+#gachaPull,
+#openCapsule {
+  position: absolute;
+
+  left: 50%;
+
+  bottom:
+    calc(
+      23px +
+      env(safe-area-inset-bottom)
+    );
+
+  transform:
+    translateX(-50%);
+
+  width: 220px;
+  height: 58px;
+
+  border: 3px solid #111;
+
+  font-weight: bold;
+
+  z-index: 30;
+}
+
+#gachaPull {
+  background: #efc842;
+  font-size: 15px;
+}
+
+#openCapsule {
+  background: white;
+  display: none;
+}
+
+#gachaResult {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  width: 290px;
+  min-height: 280px;
+
+  background: white;
+
+  border: 4px solid #111;
+
+  display: none;
+
+  text-align: center;
+
+  padding: 15px;
+
+  z-index: 60;
+}
+
+#gachaResult.rareGlow {
+  animation:
+    rarePulse
+    .55s
+    infinite
+    alternate;
+}
+
+@keyframes rarePulse {
+  from {
+    box-shadow:
+      0 0 8px #fff,
+      0 0 18px #f0c62e;
+  }
+
+  to {
+    box-shadow:
+      0 0 18px #fff,
+      0 0 45px #f0c62e,
+      0 0 75px #ffdf42;
+  }
+}
+
+#resultCanvas {
+  width: 130px;
+  height: 105px;
+}
+
+#resultName {
+  font-size: 18px;
+
+  font-weight: bold;
+
+  margin-top: 5px;
+}
+
+#resultAbility {
+  margin-top: 10px;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+/* 아주 작은 화면 대응 */
+
+@media
+(max-height: 650px) {
+
+  .mainButton {
+    height: 40px;
+  }
+
+  #buttons {
+    gap: 4px;
+  }
+
+  #moveHelp {
+    bottom:
+      calc(
+        140px +
+        env(
+          safe-area-inset-bottom
+        )
+      );
+  }
+
+  #stats {
+    font-size: 9px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <div
+    id="startScreen"
+    class="screen active"
+  >
+
+    <div id="title">
+      변기키우기
+    </div>
+
+    <div id="subtitle">
+      나만의 이상한 화장실
+    </div>
+
+    <input
+      id="nameInput"
+      maxlength="10"
+      placeholder="플레이어 이름"
+    >
+
+    <button id="startButton">
+      게임 시작
+    </button>
+
+  </div>
+
+
+  <div
+    id="mainScreen"
+    class="screen"
+  >
+
+    <canvas id="mainCanvas"></canvas>
+
+    <div id="topBar">
+
+      <div
+        id="coinBox"
+        class="pixelBox"
+      >
+
+        <div id="coinIcon"></div>
+
+        <span id="coinText">
+          0
+        </span>
+
+      </div>
+
+      <div
+        id="playerName"
+        class="pixelBox"
+      >
+        PLAYER
+      </div>
+
+    </div>
+
+    <div
+      id="stats"
+      class="pixelBox"
+    >
+      획득량 1 / 쿨타임 1.0초 / 강화 35%
+    </div>
+
+    <div
+      id="plungerInfo"
+      class="pixelBox"
+    >
+
+      <span class="plungerIcon"></span>
+
+      <span id="plungerCount">
+        0
+      </span>
+
+    </div>
+
+    <div id="moveHelp">
+      빈 곳 두 번 터치: 이동 / 움직이는 변기 한 번 터치: 뚜러뻥
+    </div>
+
+    <div id="buttons">
+
+      <button
+        id="earnButton"
+        class="mainButton"
+      >
+        돈벌기
+      </button>
+
+      <button
+        id="upgradeButton"
+        class="mainButton"
+      >
+        강화
+      </button>
+
+      <button
+        id="gachaButton"
+        class="mainButton"
+      >
+        변기 뽑기
+      </button>
+
+      <button
+        id="collectionButton"
+        class="mainButton"
+      >
+        보유 변기
+      </button>
+
+      <button
+        id="furnitureButton"
+        class="mainButton"
+      >
+        가구 상점
+      </button>
+
+      <button
+        id="plungerShopButton"
+        class="mainButton"
+      >
+        뚜러뻥 50
+      </button>
+
+    </div>
+
+    <div id="toast"></div>
+
+
+    <div id="upgradeOverlay">
+
+      <div class="modal">
+
+        <div id="upgradeMachine">
+
+          <div class="upSpark"></div>
+          <div class="upSpark"></div>
+          <div class="upSpark"></div>
+          <div class="upSpark"></div>
+          <div class="upSpark"></div>
+
+          <div id="upgradeToilet"></div>
+
+        </div>
+
+        <div id="upgradeMessage">
+          강화 중...
+        </div>
+
+        <button
+          id="upgradeClose"
+          class="modalButton"
+          style="display:none"
+        >
+          확인
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div id="confirmOverlay">
+
+      <div class="modal">
+
+        <div
+          style="
+            font-size:17px;
+            font-weight:bold;
+            margin-bottom:12px;
+          "
+        >
+          뚜러뻥
+        </div>
+
+        <div
+          id="confirmText"
+          style="
+            font-size:12px;
+            line-height:1.6;
+          "
+        ></div>
+
+        <button
+          id="confirmYes"
+          class="modalButton"
+        >
+          사용한다
+        </button>
+
+        <button
+          id="confirmNo"
+          class="modalButton"
+        >
+          안 한다
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="gachaScreen"
+    class="screen"
+  >
+
+    <canvas id="gachaCanvas"></canvas>
+
+    <button id="gachaBack">
+      뒤로
+    </button>
+
+    <div id="gachaTitle">
+      변기 뽑기
+    </div>
+
+    <div
+      id="gachaCoins"
+      class="pixelBox"
+    >
+      COIN
+      <span id="gachaCoinText">
+        0
+      </span>
+    </div>
+
+    <button id="gachaPull">
+      30 COIN 뽑기
+    </button>
+
+    <button id="openCapsule">
+      캡슐 열기
+    </button>
+
+    <div id="gachaResult">
+
+      <canvas
+        id="resultCanvas"
+        width="130"
+        height="105"
+      ></canvas>
+
+      <div id="resultName"></div>
+
+      <div id="resultAbility"></div>
+
+      <button
+        id="resultClose"
+        class="modalButton"
+      >
+        확인
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="collectionScreen"
+    class="screen pageScreen"
+  >
+
+    <div class="pageHeader">
+
+      <h2>
+        보유 변기
+      </h2>
+
+      <button
+        id="collectionBack"
+        class="backButton"
+      >
+        뒤로
+      </button>
+
+    </div>
+
+    <div id="collectionList"></div>
+
+  </div>
+
+
+  <div
+    id="furnitureScreen"
+    class="screen pageScreen"
+  >
+
+    <div class="pageHeader">
+
+      <h2>
+        가구 상점
+      </h2>
+
+      <button
+        id="furnitureBack"
+        class="backButton"
+      >
+        뒤로
+      </button>
+
+    </div>
+
+    <div id="furnitureContent"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   화면
+========================= */
+
+const screens = {
+  start:
+    document.getElementById(
+      "startScreen"
+    ),
+
+  main:
+    document.getElementById(
+      "mainScreen"
+    ),
+
+  gacha:
+    document.getElementById(
+      "gachaScreen"
+    ),
+
+  collection:
+    document.getElementById(
+      "collectionScreen"
+    ),
+
+  furniture:
+    document.getElementById(
+      "furnitureScreen"
+    )
+};
+
+
+function showScreen(name) {
+
+  Object
+    .values(screens)
+    .forEach(
+      screen => {
+
+        screen
+          .classList
+          .remove("active");
+
+      }
+    );
+
+
+  screens[name]
+    .classList
+    .add("active");
+
+
+  if (name === "main") {
+
+    resizeMainCanvas();
+
+  }
+
+
+  if (name === "gacha") {
+
+    resizeGachaCanvas();
+
+  }
+
+}
+
+
+/* =========================
+   캐릭터 데이터
+========================= */
+
+const characters = [
+
+  {
+    name: "양변기",
+    rarity: "일반",
+    type: "toilet",
+    color: "#eeeeee",
+    water: "#63b9dd",
+    weight: 10,
+    ability: "기본 변기",
+    description:
+      "주인공과 같은 기본형 변기."
+  },
+
+  {
+    name: "푸세식 변기",
+    rarity: "일반",
+    type: "outhouse",
+    color: "#744b29",
+    weight: 9,
+    ability: "옛날 방식",
+    description:
+      "클릭 수입 +1.",
+    buffIncome: 1
+  },
+
+  {
+    name: "좌변기",
+    rarity: "일반",
+    type: "seat",
+    color: "#e8e2d6",
+    water: "#6ab5d4",
+    weight: 9,
+    ability: "편안한 좌석",
+    description:
+      "클릭 수입 +1.",
+    buffIncome: 1
+  },
+
+  {
+    name: "남자 소변기",
+    rarity: "일반",
+    type: "urinal",
+    color: "#eeeeee",
+    water: "#65bee5",
+    weight: 9,
+    ability: "벽걸이 절약",
+    description:
+      "돈벌기 쿨타임 -0.02초.",
+    cooldownBuff: .02
+  },
+
+  {
+    name: "비데 변기",
+    rarity: "고급",
+    type: "bidet",
+    color: "#f0f0f0",
+    water: "#58bfea",
+    weight: 7,
+    ability: "자동 세척",
+    description:
+      "5초마다 2코인.",
+    autoIncome: 2
+  },
+
+  {
+    name: "검은 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#353535",
+    water: "#527d92",
+    weight: 6,
+    ability: "검은 수익",
+    description:
+      "클릭 수입 +2.",
+    buffIncome: 2
+  },
+
+  {
+    name: "분홍 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#eaa4ba",
+    water: "#7cd2ed",
+    weight: 6,
+    ability: "분홍 보너스",
+    description:
+      "5초마다 3코인.",
+    autoIncome: 3
+  },
+
+  {
+    name: "파란 변기",
+    rarity: "일반",
+    type: "toilet",
+    color: "#73aee0",
+    water: "#b8ebff",
+    weight: 8,
+    ability: "시원한 물",
+    description:
+      "쿨타임 -0.02초.",
+    cooldownBuff: .02
+  },
+
+  {
+    name: "깨진 변기",
+    rarity: "일반",
+    type: "broken",
+    color: "#dadada",
+    water: "#74b7d1",
+    weight: 8,
+    ability: "깨진 배관",
+    description:
+      "디버프: 클릭 수입 -1.",
+    debuffIncome: 1,
+    negative: true
+  },
+
+  {
+    name: "금간 변기",
+    rarity: "일반",
+    type: "cracked",
+    color: "#e0dfd8",
+    water: "#6ab4d2",
+    weight: 8,
+    ability: "물 새는 틈",
+    description:
+      "디버프: 쿨타임 +0.03초.",
+    debuffCooldown: .03,
+    negative: true
+  },
+
+  {
+    name: "막힌 변기",
+    rarity: "고급",
+    type: "clogged",
+    color: "#d8d5cc",
+    water: "#775337",
+    weight: 6,
+    ability: "심각한 막힘",
+    description:
+      "디버프: 클릭 수입 -2.",
+    debuffIncome: 2,
+    negative: true
+  },
+
+  {
+    name: "녹슨 변기",
+    rarity: "일반",
+    type: "rust",
+    color: "#a36846",
+    water: "#6d8c8e",
+    weight: 8,
+    ability: "녹슨 배관",
+    description:
+      "디버프: 쿨타임 +0.02초.",
+    debuffCooldown: .02,
+    negative: true
+  },
+
+  {
+    name: "곰팡이 변기",
+    rarity: "고급",
+    type: "dirty",
+    color: "#9ca377",
+    water: "#617f62",
+    weight: 6,
+    ability: "곰팡이 냄새",
+    description:
+      "디버프: 수입 -1 / 쿨타임 +0.02초.",
+    debuffIncome: 1,
+    debuffCooldown: .02,
+    negative: true
+  },
+
+  {
+    name: "미니 변기",
+    rarity: "일반",
+    type: "mini",
+    color: "#efefef",
+    water: "#64bde2",
+    weight: 8,
+    ability: "작고 빠름",
+    description:
+      "쿨타임 -0.03초.",
+    cooldownBuff: .03
+  },
+
+  {
+    name: "대형 변기",
+    rarity: "고급",
+    type: "giant",
+    color: "#dedede",
+    water: "#5aabd0",
+    weight: 6,
+    ability: "대용량",
+    description:
+      "클릭 수입 +3.",
+    buffIncome: 3
+  },
+
+  {
+    name: "네온 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#35e5c0",
+    water: "#d65eff",
+    weight: 4,
+    ability: "네온 부스트",
+    description:
+      "쿨타임 -0.05초.",
+    cooldownBuff: .05
+  },
+
+  {
+    name: "얼음 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#b9efff",
+    water: "#62d4f4",
+    weight: 4,
+    ability: "냉각 배관",
+    description:
+      "쿨타임 -0.06초.",
+    cooldownBuff: .06
+  },
+
+  {
+    name: "용암 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#5f2822",
+    water: "#ff6327",
+    weight: 4,
+    ability: "뜨거운 생산",
+    description:
+      "클릭 수입 +4.",
+    buffIncome: 4
+  },
+
+  {
+    name: "로봇 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#7e8a91",
+    water: "#4bd4ef",
+    weight: 4,
+    ability: "자동 작업",
+    description:
+      "5초마다 5코인.",
+    autoIncome: 5
+  },
+
+  {
+    name: "유령 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#dceaf0",
+    water: "#a6eafa",
+    weight: 3,
+    ability: "유령 수입",
+    description:
+      "클릭 수입 +5.",
+    buffIncome: 5
+  },
+
+  {
+    name: "우주 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#352c68",
+    water: "#60d5e8",
+    weight: 3,
+    ability: "무중력 코인",
+    description:
+      "5초마다 7코인.",
+    autoIncome: 7
+  },
+
+  {
+    name: "황금 양변기",
+    rarity: "레어",
+    type: "toilet",
+    color: "#e8bb24",
+    water: "#83e3f4",
+    weight: 1.5,
+    ability: "황금 왕좌",
+    description:
+      "클릭 수입 +8.",
+    buffIncome: 8,
+    gold: true
+  },
+
+  {
+    name: "황금 소변기",
+    rarity: "레어",
+    type: "urinal",
+    color: "#e5b51c",
+    water: "#84e5f5",
+    weight: 1.3,
+    ability: "황금 벽걸이",
+    description:
+      "쿨타임 -0.10초.",
+    cooldownBuff: .10,
+    gold: true
+  },
+
+  {
+    name: "황금 비데",
+    rarity: "레어",
+    type: "bidet",
+    color: "#e7b91d",
+    water: "#89e6f4",
+    weight: 1.2,
+    ability: "황금 세척",
+    description:
+      "5초마다 15코인.",
+    autoIncome: 15,
+    gold: true
+  },
+
+  {
+    name: "대리석 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#e7e3dc",
+    water: "#76c8e1",
+    weight: 3,
+    ability: "고급 대리석",
+    description:
+      "클릭 수입 +5.",
+    buffIncome: 5
+  },
+
+  {
+    name: "나무 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#98653b",
+    water: "#68b9d7",
+    weight: 6,
+    ability: "나무 좌석",
+    description:
+      "5초마다 3코인.",
+    autoIncome: 3
+  },
+
+  {
+    name: "산업용 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#68737a",
+    water: "#5eabbf",
+    weight: 4,
+    ability: "공장 생산",
+    description:
+      "5초마다 8코인.",
+    autoIncome: 8
+  },
+
+  {
+    name: "병원 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#e9f2ec",
+    water: "#6bd0d7",
+    weight: 5,
+    ability: "깨끗한 관리",
+    description:
+      "클릭 수입 +3.",
+    buffIncome: 3
+  },
+
+  {
+    name: "학교 변기",
+    rarity: "일반",
+    type: "toilet",
+    color: "#d2d7d1",
+    water: "#64b7dc",
+    weight: 8,
+    ability: "급식 후 청소",
+    description:
+      "클릭 수입 +1.",
+    buffIncome: 1
+  },
+
+  {
+    name: "공중화장실 변기",
+    rarity: "일반",
+    type: "toilet",
+    color: "#d8d6cf",
+    water: "#65add0",
+    weight: 8,
+    ability: "많은 이용객",
+    description:
+      "5초마다 2코인.",
+    autoIncome: 2
+  },
+
+  {
+    name: "휴게소 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#eee8d9",
+    water: "#70c4dc",
+    weight: 6,
+    ability: "장거리 손님",
+    description:
+      "5초마다 4코인.",
+    autoIncome: 4
+  },
+
+  {
+    name: "호텔 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#f4eee0",
+    water: "#71c7e1",
+    weight: 4,
+    ability: "호텔 서비스",
+    description:
+      "클릭 수입 +6.",
+    buffIncome: 6
+  },
+
+  {
+    name: "투명 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#bce6ea",
+    water: "#58c8df",
+    weight: 3,
+    ability: "투명 배관",
+    description:
+      "쿨타임 -0.06초.",
+    cooldownBuff: .06
+  },
+
+  {
+    name: "콘크리트 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#969696",
+    water: "#5da8bd",
+    weight: 5,
+    ability: "엄청난 무게",
+    description:
+      "클릭 수입 +4 / 쿨타임 +0.02초.",
+    buffIncome: 4,
+    debuffCooldown: .02
+  },
+
+  {
+    name: "고무 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#e1da49",
+    water: "#63bbdc",
+    weight: 5,
+    ability: "통통 튀는 변기",
+    description:
+      "쿨타임 -0.04초.",
+    cooldownBuff: .04
+  },
+
+  {
+    name: "카본 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#272b2c",
+    water: "#65b5ce",
+    weight: 3,
+    ability: "초경량",
+    description:
+      "쿨타임 -0.08초.",
+    cooldownBuff: .08
+  },
+
+  {
+    name: "초호화 비데",
+    rarity: "레어",
+    type: "bidet",
+    color: "#faf5df",
+    water: "#79d4e7",
+    weight: 1,
+    ability: "초호화 서비스",
+    description:
+      "5초마다 18코인.",
+    autoIncome: 18
+  },
+
+  {
+    name: "벽돌 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#a8513c",
+    water: "#5caecb",
+    weight: 5,
+    ability: "벽돌 공사",
+    description:
+      "클릭 수입 +3.",
+    buffIncome: 3
+  },
+
+  {
+    name: "캠핑 변기",
+    rarity: "일반",
+    type: "toilet",
+    color: "#728159",
+    water: "#5fb4cf",
+    weight: 8,
+    ability: "야외 생활",
+    description:
+      "5초마다 2코인.",
+    autoIncome: 2
+  },
+
+  {
+    name: "미래형 변기",
+    rarity: "레어",
+    type: "toilet",
+    color: "#dff3f5",
+    water: "#64f1eb",
+    weight: 1,
+    ability: "미래 기술",
+    description:
+      "쿨타임 -0.12초.",
+    cooldownBuff: .12
+  },
+
+  {
+    name: "폭주 변기",
+    rarity: "희귀",
+    type: "toilet",
+    color: "#be3833",
+    water: "#ef772a",
+    weight: 3,
+    ability: "폭주",
+    description:
+      "클릭 수입 +8 / 쿨타임 +0.05초.",
+    buffIncome: 8,
+    debuffCooldown: .05
+  },
+
+  {
+    name: "썩은 변기",
+    rarity: "고급",
+    type: "toilet",
+    color: "#777a48",
+    water: "#595f3d",
+    weight: 5,
+    ability: "썩은 배관",
+    description:
+      "디버프: 클릭 수입 -3.",
+    debuffIncome: 3,
+    negative: true
+  }
+
+];
+
+
+/* =========================
+   가구
+========================= */
+
+const furnitureCatalog = [
+
+  {
+    name: "화단",
+    type: "flower",
+    price: 30,
+    description:
+      "10초마다 2코인.",
+    interval: 10000,
+    income: 2
+  },
+
+  {
+    name: "쓰레기통",
+    type: "trash",
+    price: 35,
+    description:
+      "10초마다 3코인.",
+    interval: 10000,
+    income: 3
+  },
+
+  {
+    name: "의자",
+    type: "chair",
+    price: 40,
+    description:
+      "12초마다 5코인.",
+    interval: 12000,
+    income: 5
+  },
+
+  {
+    name: "세면대",
+    type: "sink",
+    price: 45,
+    description:
+      "12초마다 7코인.",
+    interval: 12000,
+    income: 7
+  },
+
+  {
+    name: "자판기",
+    type: "machine",
+    price: 50,
+    description:
+      "15초마다 10코인.",
+    interval: 15000,
+    income: 10
+  },
+
+  {
+    name: "오토바이",
+    type: "motorcycle",
+    price: 55,
+    description:
+      "15초마다 14코인.",
+    interval: 15000,
+    income: 14
+  },
+
+  {
+    name: "대형 화단",
+    type: "bigFlower",
+    price: 60,
+    description:
+      "18초마다 20코인.",
+    interval: 18000,
+    income: 20
+  },
+
+  {
+    name: "금고",
+    type: "safe",
+    price: 65,
+    description:
+      "20초마다 30코인.",
+    interval: 20000,
+    income: 30
+  },
+
+  {
+    name: "자동 청소기",
+    type: "cleaner",
+    price: 70,
+    description:
+      "22초마다 40코인.",
+    interval: 22000,
+    income: 40
+  },
+
+  {
+    name: "황금 동상",
+    type: "statue",
+    price: 75,
+    description:
+      "30초마다 클릭 수입의 2배.",
+    interval: 30000,
+    doubleIncome: true
+  }
+
+];
+
+
+/* =========================
+   게임 상태
+========================= */
+
+let coins = 0;
+
+let playerNameValue =
+  "PLAYER";
+
+let moneyPower = 1;
+
+let earnCooldown = 1.0;
+
+const upgradeChance =
+  .35;
+
+let upgradeCost =
+  10;
+
+const gachaCost =
+  30;
+
+let plungers =
+  0;
+
+
+const owned =
+  new Array(
+    characters.length
+  ).fill(0);
+
+owned[0] = 1;
+
+
+const roamingCharacters =
+  [];
+
+const purchasedFurniture =
+  new Array(
+    furnitureCatalog.length
+  ).fill(false);
+
+const placedFurniture =
+  [];
+
+
+/* =========================
+   기본 DOM
+========================= */
+
+const coinText =
+  document.getElementById(
+    "coinText"
+  );
+
+const gachaCoinText =
+  document.getElementById(
+    "gachaCoinText"
+  );
+
+const stats =
+  document.getElementById(
+    "stats"
+  );
+
+const plungerCount =
+  document.getElementById(
+    "plungerCount"
+  );
+
+
+function calculateIncome() {
+
+  let result =
+    moneyPower;
+
+
+  characters.forEach(
+    (character,index) => {
+
+      let amount =
+        owned[index];
+
+
+      if (index === 0) {
+
+        amount =
+          Math.max(
+            0,
+            amount - 1
+          );
+
+      }
+
+
+      result +=
+        (
+          character.buffIncome ||
+          0
+        ) *
+        amount;
+
+
+      result -=
+        (
+          character.debuffIncome ||
+          0
+        ) *
+        amount;
+
+    }
+  );
+
+
+  return Math.max(
+    1,
+    Math.floor(result)
+  );
+
+}
+
+
+function calculateCooldown() {
+
+  let result =
+    earnCooldown;
+
+
+  characters.forEach(
+    (character,index) => {
+
+      let amount =
+        owned[index];
+
+
+      if (index === 0) {
+
+        amount =
+          Math.max(
+            0,
+            amount - 1
+          );
+
+      }
+
+
+      result -=
+        (
+          character.cooldownBuff ||
+          0
+        ) *
+        amount;
+
+
+      result +=
+        (
+          character.debuffCooldown ||
+          0
+        ) *
+        amount;
+
+    }
+  );
+
+
+  return Math.max(
+    .1,
+    result
+  );
+
+}
+
+
+function updateUI() {
+
+  coinText.textContent =
+    Math.floor(coins);
+
+  gachaCoinText.textContent =
+    Math.floor(coins);
+
+  plungerCount.textContent =
+    plungers;
+
+  stats.textContent =
+    "획득량 " +
+    calculateIncome() +
+    " / 쿨타임 " +
+    calculateCooldown()
+      .toFixed(1) +
+    "초 / 강화 35%";
+
+}
+
+
+/* =========================
+   시작
+========================= */
+
+document
+  .getElementById(
+    "startButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      const input =
+        document
+          .getElementById(
+            "nameInput"
+          )
+          .value
+          .trim();
+
+
+      if (input) {
+
+        playerNameValue =
+          input;
+
+      }
+
+
+      document
+        .getElementById(
+          "playerName"
+        )
+        .textContent =
+          playerNameValue;
+
+
+      showScreen(
+        "main"
+      );
+
+    }
+  );
+
+
+/* =========================
+   토스트
+========================= */
+
+let toastTimer =
+  null;
+
+
+function toast(text) {
+
+  const el =
+    document.getElementById(
+      "toast"
+    );
+
+
+  el.textContent =
+    text;
+
+  el.style.display =
+    "block";
+
+
+  clearTimeout(
+    toastTimer
+  );
+
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        el.style.display =
+          "none";
+
+      },
+      1500
+    );
+
+}
+
+
+/* =========================
+   돈벌기
+========================= */
+
+let canEarn =
+  true;
+
+
+document
+  .getElementById(
+    "earnButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (!canEarn) {
+        return;
+      }
+
+
+      canEarn =
+        false;
+
+
+      const gain =
+        calculateIncome();
+
+
+      coins +=
+        gain;
+
+
+      updateUI();
+
+
+      toast(
+        "+" +
+        gain +
+        " 코인"
+      );
+
+
+      setTimeout(
+        () => {
+
+          canEarn =
+            true;
+
+        },
+        calculateCooldown()
+          * 1000
+      );
+
+    }
+  );
+
+
+/* =========================
+   자동수익
+========================= */
+
+setInterval(
+  () => {
+
+    let gain =
+      0;
+
+
+    characters.forEach(
+      (character,index) => {
+
+        let amount =
+          owned[index];
+
+
+        if (index === 0) {
+
+          amount =
+            Math.max(
+              0,
+              amount - 1
+            );
+
+        }
+
+
+        gain +=
+          (
+            character.autoIncome ||
+            0
+          ) *
+          amount;
+
+      }
+    );
+
+
+    if (gain > 0) {
+
+      coins +=
+        gain;
+
+      updateUI();
+
+    }
+
+  },
+  5000
+);
+
+
+/* =========================
+   강화
+========================= */
+
+const upgradeOverlay =
+  document.getElementById(
+    "upgradeOverlay"
+  );
+
+const upgradeMessage =
+  document.getElementById(
+    "upgradeMessage"
+  );
+
+const upgradeClose =
+  document.getElementById(
+    "upgradeClose"
+  );
+
+let upgrading =
+  false;
+
+
+document
+  .getElementById(
+    "upgradeButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (upgrading) {
+        return;
+      }
+
+
+      if (
+        coins <
+        upgradeCost
+      ) {
+
+        toast(
+          "강화에 " +
+          upgradeCost +
+          "코인이 필요합니다."
+        );
+
+        return;
+      }
+
+
+      coins -=
+        upgradeCost;
+
+
+      upgrading =
+        true;
+
+
+      updateUI();
+
+
+      upgradeOverlay
+        .style
+        .display =
+          "block";
+
+
+      upgradeClose
+        .style
+        .display =
+          "none";
+
+
+      upgradeMessage.innerHTML =
+        "변기를 강화하는 중..." +
+        "<br><br>" +
+        "성공 확률 35%";
+
+
+      setTimeout(
+        () => {
+
+          if (
+            Math.random() <
+            upgradeChance
+          ) {
+
+            if (
+              Math.random() <
+              .5
+            ) {
+
+              moneyPower +=
+                2;
+
+
+              upgradeMessage
+                .innerHTML =
+                  "강화 성공!" +
+                  "<br><br>" +
+                  "돈 획득량 +2";
+
+            } else {
+
+              earnCooldown =
+                Math.max(
+                  .1,
+                  earnCooldown -
+                  .1
+                );
+
+
+              upgradeMessage
+                .innerHTML =
+                  "강화 성공!" +
+                  "<br><br>" +
+                  "쿨타임 -0.1초";
+
+            }
+
+          } else {
+
+            upgradeMessage
+              .innerHTML =
+                "강화 실패..." +
+                "<br><br>" +
+                "변화가 없습니다.";
+
+          }
+
+
+          upgradeCost +=
+            2;
+
+
+          upgradeClose
+            .style
+            .display =
+              "inline-block";
+
+
+          updateUI();
+
+        },
+        1700
+      );
+
+    }
+  );
+
+
+upgradeClose
+  .addEventListener(
+    "click",
+    () => {
+
+      upgradeOverlay
+        .style
+        .display =
+          "none";
+
+      upgrading =
+        false;
+
+    }
+  );
+
+
+/* =========================
+   메인 캔버스
+========================= */
+
+const mainCanvas =
+  document.getElementById(
+    "mainCanvas"
+  );
+
+const ctx =
+  mainCanvas.getContext(
+    "2d"
+  );
+
+
+function resizeMainCanvas() {
+
+  mainCanvas.width =
+    mainCanvas.clientWidth;
+
+  mainCanvas.height =
+    mainCanvas.clientHeight;
+
+}
+
+
+const player = {
+
+  x: 180,
+  y: 340,
+
+  targetX: 180,
+  targetY: 340,
+
+  speed: 3,
+
+  moving: false,
+
+  direction: 1
+
+};
+
+
+function pointerPosition(
+  canvas,
+  event
+) {
+
+  const rect =
+    canvas
+      .getBoundingClientRect();
+
+
+  return {
+
+    x:
+      (
+        event.clientX -
+        rect.left
+      )
+      *
+      canvas.width
+      /
+      rect.width,
+
+    y:
+      (
+        event.clientY -
+        rect.top
+      )
+      *
+      canvas.height
+      /
+      rect.height
+
+  };
+
+}
+
+
+/* =========================
+   이동 + 뚜러뻥 선택
+========================= */
+
+let lastTap =
+  0;
+
+let selectedRemoveIndex =
+  null;
+
+
+mainCanvas
+  .addEventListener(
+    "pointerdown",
+    event => {
+
+      const pos =
+        pointerPosition(
+          mainCanvas,
+          event
+        );
+
+
+      for (
+        let i =
+          roamingCharacters.length - 1;
+
+        i >= 0;
+
+        i--
+      ) {
+
+        const character =
+          roamingCharacters[i];
+
+
+        if (
+          pos.x >=
+          character.x - 5
+          &&
+          pos.x <=
+          character.x + 70
+          &&
+          pos.y >=
+          character.y - 5
+          &&
+          pos.y <=
+          character.y + 75
+        ) {
+
+          openPlungerConfirm(
+            i
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      const now =
+        Date.now();
+
+
+      if (
+        now - lastTap <
+        320
+      ) {
+
+        player.targetX =
+          Math.max(
+            5,
+            Math.min(
+              mainCanvas.width -
+              70,
+              pos.x - 30
+            )
+          );
+
+
+        player.targetY =
+          Math.max(
+            115,
+            Math.min(
+              mainCanvas.height -
+              175,
+              pos.y - 35
+            )
+          );
+
+
+        player.direction =
+          player.targetX <
+          player.x
+          ? -1
+          : 1;
+
+
+        player.moving =
+          true;
+
+      }
+
+
+      lastTap =
+        now;
+
+    }
+  );
+
+
+function updatePlayer() {
+
+  if (!player.moving) {
+    return;
+  }
+
+
+  const dx =
+    player.targetX -
+    player.x;
+
+  const dy =
+    player.targetY -
+    player.y;
+
+
+  const distance =
+    Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
+
+
+  if (distance < 3) {
+
+    player.x =
+      player.targetX;
+
+    player.y =
+      player.targetY;
+
+    player.moving =
+      false;
+
+    return;
+
+  }
+
+
+  player.x +=
+    dx /
+    distance *
+    player.speed;
+
+
+  player.y +=
+    dy /
+    distance *
+    player.speed;
+
+}
+
+
+/* =========================
+   뚜러뻥
+========================= */
+
+document
+  .getElementById(
+    "plungerShopButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        coins < 50
+      ) {
+
+        toast(
+          "뚜러뻥은 50코인입니다."
+        );
+
+        return;
+
+      }
+
+
+      coins -=
+        50;
+
+      plungers++;
+
+
+      updateUI();
+
+
+      toast(
+        "뚜러뻥 구매 완료"
+      );
+
+    }
+  );
+
+
+const confirmOverlay =
+  document.getElementById(
+    "confirmOverlay"
+  );
+
+const confirmText =
+  document.getElementById(
+    "confirmText"
+  );
+
+
+function openPlungerConfirm(
+  roamingIndex
+) {
+
+  selectedRemoveIndex =
+    roamingIndex;
+
+
+  const roaming =
+    roamingCharacters[
+      roamingIndex
+    ];
+
+
+  const character =
+    characters[
+      roaming.characterIndex
+    ];
+
+
+  confirmText.innerHTML =
+    "<b>" +
+    character.name +
+    "</b>에게" +
+    "<br>" +
+    "뚜러뻥을 사용하겠습니까?" +
+    "<br><br>" +
+    "보유 뚜러뻥: " +
+    plungers +
+    "개";
+
+
+  confirmOverlay
+    .style
+    .display =
+      "block";
+
+}
+
+
+document
+  .getElementById(
+    "confirmNo"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      confirmOverlay
+        .style
+        .display =
+          "none";
+
+
+      selectedRemoveIndex =
+        null;
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "confirmYes"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        selectedRemoveIndex ===
+        null
+      ) {
+        return;
+      }
+
+
+      if (
+        plungers <= 0
+      ) {
+
+        confirmOverlay
+          .style
+          .display =
+            "none";
+
+
+        selectedRemoveIndex =
+          null;
+
+
+        toast(
+          "뚜러뻥이 없습니다."
+        );
+
+
+        return;
+
+      }
+
+
+      const roaming =
+        roamingCharacters[
+          selectedRemoveIndex
+        ];
+
+
+      const characterIndex =
+        roaming.characterIndex;
+
+
+      const name =
+        characters[
+          characterIndex
+        ].name;
+
+
+      plungers--;
+
+
+      owned[
+        characterIndex
+      ] =
+        Math.max(
+          0,
+          owned[
+            characterIndex
+          ] - 1
+        );
+
+
+      roamingCharacters.splice(
+        selectedRemoveIndex,
+        1
+      );
+
+
+      confirmOverlay
+        .style
+        .display =
+          "none";
+
+
+      selectedRemoveIndex =
+        null;
+
+
+      toast(
+        name +
+        "에게 뚜러뻥 사용!"
+      );
+
+
+      updateUI();
+
+    }
+  );
+
+
+/* =========================
+   캐릭터 그림
+========================= */
+
+function drawEyes(
+  context,
+  x,
+  y
+) {
+
+  context.fillStyle =
+    "#fff";
+
+
+  context.fillRect(
+    x,
+    y,
+    7,
+    7
+  );
+
+
+  context.fillRect(
+    x + 14,
+    y,
+    7,
+    7
+  );
+
+
+  context.fillStyle =
+    "#111";
+
+
+  context.fillRect(
+    x + 3,
+    y + 2,
+    3,
+    4
+  );
+
+
+  context.fillRect(
+    x + 17,
+    y + 2,
+    3,
+    4
+  );
+
+}
+
+
+function basicToilet(
+  context,
+  x,
+  y,
+  color,
+  water
+) {
+
+  context.fillStyle =
+    "#171717";
+
+
+  context.fillRect(
+    x + 12,
+    y + 3,
+    36,
+    28
+  );
+
+
+  context.fillRect(
+    x + 5,
+    y + 29,
+    54,
+    11
+  );
+
+
+  context.fillRect(
+    x + 10,
+    y + 39,
+    44,
+    20
+  );
+
+
+  context.fillRect(
+    x + 20,
+    y + 57,
+    24,
+    10
+  );
+
+
+  context.fillStyle =
+    color;
+
+
+  context.fillRect(
+    x + 14,
+    y + 5,
+    32,
+    24
+  );
+
+
+  context.fillRect(
+    x + 7,
+    y + 31,
+    50,
+    7
+  );
+
+
+  context.fillRect(
+    x + 12,
+    y + 41,
+    40,
+    16
+  );
+
+
+  context.fillRect(
+    x + 22,
+    y + 57,
+    20,
+    8
+  );
+
+
+  context.fillStyle =
+    water;
+
+
+  context.fillRect(
+    x + 20,
+    y + 43,
+    23,
+    5
+  );
+
+
+  drawEyes(
+    context,
+    x + 19,
+    y + 13
+  );
+
+
+  context.fillStyle =
+    "#111";
+
+
+  context.fillRect(
+    x + 28,
+    y + 24,
+    8,
+    2
+  );
+
+}
+
+
+function drawCharacter(
+  context,
+  character,
+  x,
+  y
+) {
+
+  const color =
+    character.color ||
+    "#eee";
+
+  const water =
+    character.water ||
+    "#66bada";
+
+
+  context.fillStyle =
+    "rgba(0,0,0,.15)";
+
+
+  context.fillRect(
+    x + 7,
+    y + 68,
+    53,
+    4
+  );
+
+
+  if (
+    character.type ===
+    "outhouse"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 8,
+      y + 14,
+      48,
+      51
+    );
+
+
+    context.fillRect(
+      x + 3,
+      y + 8,
+      58,
+      9
+    );
+
+
+    context.fillStyle =
+      color;
+
+
+    context.fillRect(
+      x + 10,
+      y + 16,
+      44,
+      47
+    );
+
+
+    context.fillStyle =
+      "#4f321c";
+
+
+    context.fillRect(
+      x + 23,
+      y + 34,
+      19,
+      29
+    );
+
+
+    drawEyes(
+      context,
+      x + 21,
+      y + 22
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    character.type ===
+    "urinal"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 15,
+      y + 7,
+      36,
+      51
+    );
+
+
+    context.fillStyle =
+      color;
+
+
+    context.fillRect(
+      x + 17,
+      y + 9,
+      32,
+      47
+    );
+
+
+    context.fillStyle =
+      water;
+
+
+    context.fillRect(
+      x + 22,
+      y + 43,
+      22,
+      7
+    );
+
+
+    drawEyes(
+      context,
+      x + 22,
+      y + 23
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    character.type ===
+    "seat"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 9,
+      y + 12,
+      45,
+      9
+    );
+
+
+    context.fillRect(
+      x + 5,
+      y + 28,
+      55,
+      13
+    );
+
+
+    context.fillRect(
+      x + 14,
+      y + 40,
+      36,
+      23
+    );
+
+
+    context.fillStyle =
+      color;
+
+
+    context.fillRect(
+      x + 11,
+      y + 14,
+      41,
+      5
+    );
+
+
+    context.fillRect(
+      x + 7,
+      y + 30,
+      51,
+      9
+    );
+
+
+    context.fillRect(
+      x + 16,
+      y + 42,
+      32,
+      19
+    );
+
+
+    context.fillStyle =
+      water;
+
+
+    context.fillRect(
+      x + 19,
+      y + 43,
+      26,
+      5
+    );
+
+
+    drawEyes(
+      context,
+      x + 21,
+      y + 24
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    character.type ===
+    "mini"
+  ) {
+
+    context.save();
+
+
+    context.translate(
+      x + 10,
+      y + 17
+    );
+
+
+    context.scale(
+      .72,
+      .72
+    );
+
+
+    basicToilet(
+      context,
+      0,
+      0,
+      color,
+      water
+    );
+
+
+    context.restore();
+
+
+    return;
+
+  }
+
+
+  if (
+    character.type ===
+    "giant"
+  ) {
+
+    context.save();
+
+
+    context.translate(
+      x - 5,
+      y - 6
+    );
+
+
+    context.scale(
+      1.15,
+      1.15
+    );
+
+
+    basicToilet(
+      context,
+      0,
+      0,
+      color,
+      water
+    );
+
+
+    context.restore();
+
+
+    return;
+
+  }
+
+
+  basicToilet(
+    context,
+    x,
+    y,
+    color,
+    water
+  );
+
+
+  if (
+    character.type ===
+    "bidet"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 50,
+      y + 30,
+      12,
+      14
+    );
+
+
+    context.fillStyle =
+      "#ddd";
+
+
+    context.fillRect(
+      x + 52,
+      y + 32,
+      8,
+      10
+    );
+
+  }
+
+
+  if (
+    character.type ===
+    "broken"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 45,
+      y + 2,
+      10,
+      15
+    );
+
+
+    context.fillStyle =
+      "#bbb";
+
+
+    context.fillRect(
+      x + 49,
+      y - 3,
+      12,
+      10
+    );
+
+  }
+
+
+  if (
+    character.type ===
+    "cracked"
+  ) {
+
+    context.fillStyle =
+      "#111";
+
+
+    context.fillRect(
+      x + 39,
+      y + 6,
+      2,
+      9
+    );
+
+
+    context.fillRect(
+      x + 36,
+      y + 14,
+      5,
+      2
+    );
+
+
+    context.fillRect(
+      x + 35,
+      y + 15,
+      2,
+      8
+    );
+
+  }
+
+
+  if (
+    character.type ===
+    "clogged"
+  ) {
+
+    context.fillStyle =
+      "#503621";
+
+
+    context.fillRect(
+      x + 22,
+      y + 41,
+      20,
+      9
+    );
+
+  }
+
+
+  if (
+    character.gold
+  ) {
+
+    context.fillStyle =
+      "#fff1a2";
+
+
+    context.fillRect(
+      x + 15,
+      y + 7,
+      5,
+      12
+    );
+
+  }
+
+}
+
+
+/* =========================
+   배경
+========================= */
+
+function drawBackground() {
+
+  ctx.fillStyle =
+    "#ededed";
+
+
+  ctx.fillRect(
+    0,
+    0,
+    mainCanvas.width,
+    115
+  );
+
+
+  ctx.fillStyle =
+    "#999";
+
+
+  ctx.fillRect(
+    0,
+    112,
+    mainCanvas.width,
+    4
+  );
+
+
+  ctx.fillStyle =
+    "#d5d5d5";
+
+
+  ctx.fillRect(
+    0,
+    116,
+    mainCanvas.width,
+    mainCanvas.height -
+    116
+  );
+
+
+  const tile =
+    43;
+
+
+  ctx.strokeStyle =
+    "#bdbdbd";
+
+
+  for (
+    let x = 0;
+    x < mainCanvas.width;
+    x += tile
+  ) {
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      x,
+      116
+    );
+
+
+    ctx.lineTo(
+      x,
+      mainCanvas.height
+    );
+
+
+    ctx.stroke();
+
+  }
+
+
+  for (
+    let y = 116;
+    y < mainCanvas.height;
+    y += tile
+  ) {
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+
+    ctx.lineTo(
+      mainCanvas.width,
+      y
+    );
+
+
+    ctx.stroke();
+
+  }
+
+}
+
+
+/* =========================
+   가구 그리기
+========================= */
+
+function drawFurniture(
+  item
+) {
+
+  const x =
+    item.x;
+
+  const y =
+    item.y;
+
+
+  if (
+    item.type ===
+    "flower"
+    ||
+    item.type ===
+    "bigFlower"
+  ) {
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+      x - 20,
+      y - 8,
+      42,
+      22
+    );
+
+
+    ctx.fillStyle =
+      "#925a31";
+
+
+    ctx.fillRect(
+      x - 18,
+      y - 6,
+      38,
+      18
+    );
+
+
+    ctx.fillStyle =
+      "#377b36";
+
+
+    ctx.fillRect(
+      x,
+      y - 32,
+      6,
+      27
+    );
+
+
+    ctx.fillStyle =
+      "#dd4e53";
+
+
+    ctx.fillRect(
+      x - 10,
+      y - 38,
+      13,
+      12
+    );
+
+  }
+
+
+  if (
+    item.type ===
+    "trash"
+  ) {
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+      x - 14,
+      y - 28,
+      30,
+      42
+    );
+
+
+    ctx.fillStyle =
+      "#6f7477";
+
+
+    ctx.fillRect(
+      x - 12,
+      y - 26,
+      26,
+      38
+    );
+
+  }
+
+
+  if (
+    item.type ===
+    "chair"
+  ) {
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+      x - 17,
+      y - 26,
+      34,
+      8
+    );
+
+
+    ctx.fillRect(
+      x - 14,
+      y - 18,
+      28,
+      18
+    );
+
+
+    ctx.fillRect(
+      x - 10,
+      y,
+      5,
+      19
+    );
+
+
+    ctx.fillRect(
+      x + 7,
+      y,
+      5,
+      19
+    );
+
+
+    ctx.fillStyle =
+      "#996333";
+
+
+    ctx.fillRect(
+      x - 15,
+      y - 24,
+      30,
+      4
+    );
+
+
+    ctx.fillRect(
+      x - 12,
+      y - 16,
+      24,
+      14
+    );
+
+  }
+
+
+  if (
+    item.type ===
+    "motorcycle"
+  ) {
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+      x - 27,
+      y,
+      17,
+      17
+    );
+
+
+    ctx.fillRect(
+      x + 20,
+      y,
+      17,
+      17
+    );
+
+
+    ctx.fillStyle =
+      "#c83b36";
+
+
+    ctx.fillRect(
+      x - 11,
+      y - 13,
+      37,
+      14
+    );
+
+  }
+
+
+  if (
+    item.type ===
+    "safe"
+  ) {
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+      x - 24,
+      y - 40,
+      48,
+      56
+    );
+
+
+    ctx.fillStyle =
+      "#555";
+
+
+    ctx.fillRect(
+      x - 21,
+      y - 37,
+      42,
+      50
+    );
+
+  }
+
+}
+
+
+/* =========================
+   돌아다니는 캐릭터
+========================= */
+
+function addRoamingCharacter(
+  characterIndex
+) {
+
+  const angle =
+    Math.random() *
+    Math.PI *
+    2;
+
+
+  roamingCharacters.push({
+
+    characterIndex,
+
+    x:
+      15 +
+      Math.random() *
+      Math.max(
+        30,
+        mainCanvas.width -
+        90
+      ),
+
+    y:
+      135 +
+      Math.random() *
+      Math.max(
+        80,
+        mainCanvas.height -
+        340
+      ),
+
+    vx:
+      Math.cos(angle) *
+      (
+        .25 +
+        Math.random() *
+        .4
+      ),
+
+    vy:
+      Math.sin(angle) *
+      (
+        .25 +
+        Math.random() *
+        .4
+      ),
+
+    phase:
+      Math.random() *
+      10
+
+  });
+
+}
+
+
+function updateRoaming() {
+
+  roamingCharacters
+    .forEach(
+      character => {
+
+        character.x +=
+          character.vx;
+
+
+        character.y +=
+          character.vy;
+
+
+        if (
+          character.x < 2
+          ||
+          character.x >
+          mainCanvas.width -
+          70
+        ) {
+
+          character.vx *=
+            -1;
+
+        }
+
+
+        if (
+          character.y < 120
+          ||
+          character.y >
+          mainCanvas.height -
+          180
+        ) {
+
+          character.vy *=
+            -1;
+
+        }
+
+
+        character.phase +=
+          .05;
+
+      }
+    );
+
+}
+
+
+/* =========================
+   메인 그리기
+========================= */
+
+function drawMain() {
+
+  ctx.clearRect(
+    0,
+    0,
+    mainCanvas.width,
+    mainCanvas.height
+  );
+
+
+  drawBackground();
+
+
+  placedFurniture
+    .forEach(
+      drawFurniture
+    );
+
+
+  roamingCharacters
+    .forEach(
+      character => {
+
+        drawCharacter(
+          ctx,
+          characters[
+            character.characterIndex
+          ],
+          character.x,
+          character.y +
+          Math.sin(
+            character.phase
+          ) *
+          1.5
+        );
+
+      }
+    );
+
+
+  const bounce =
+    player.moving
+    ?
+    Math.sin(
+      performance.now() /
+      90
+    ) *
+    2
+    :
+    0;
+
+
+  ctx.save();
+
+
+  if (
+    player.direction < 0
+  ) {
+
+    ctx.translate(
+      player.x + 65,
+      0
+    );
+
+
+    ctx.scale(
+      -1,
+      1
+    );
+
+
+    drawCharacter(
+      ctx,
+      characters[0],
+      0,
+      player.y +
+      bounce
+    );
+
+  } else {
+
+    drawCharacter(
+      ctx,
+      characters[0],
+      player.x,
+      player.y +
+      bounce
+    );
+
+  }
+
+
+  ctx.restore();
+
+
+  ctx.fillStyle =
+    "#111";
+
+
+  ctx.font =
+    "11px monospace";
+
+
+  ctx.textAlign =
+    "center";
+
+
+  ctx.fillText(
+    playerNameValue,
+    player.x + 31,
+    player.y - 7
+  );
+
+}
+
+
+/* =========================
+   뽑기
+========================= */
+
+const gachaCanvas =
+  document.getElementById(
+    "gachaCanvas"
+  );
+
+const gctx =
+  gachaCanvas.getContext(
+    "2d"
+  );
+
+
+function resizeGachaCanvas() {
+
+  gachaCanvas.width =
+    gachaCanvas.clientWidth;
+
+  gachaCanvas.height =
+    gachaCanvas.clientHeight;
+
+}
+
+
+let gachaState =
+  "idle";
+
+let capsuleY =
+  245;
+
+let currentGacha =
+  null;
+
+
+function randomCharacter() {
+
+  const total =
+    characters.reduce(
+      (
+        sum,
+        character
+      ) =>
+        sum +
+        character.weight,
+      0
+    );
+
+
+  let value =
+    Math.random() *
+    total;
+
+
+  for (
+    let i = 0;
+    i < characters.length;
+    i++
+  ) {
+
+    value -=
+      characters[i].weight;
+
+
+    if (
+      value <= 0
+    ) {
+
+      return i;
+
+    }
+
+  }
+
+
+  return 0;
+
+}
+
+
+function drawCapsule(
+  context,
+  x,
+  y,
+  radius
+) {
+
+  context.fillStyle =
+    "#111";
+
+
+  context.beginPath();
+
+
+  context.arc(
+    x,
+    y,
+    radius,
+    0,
+    Math.PI *
+    2
+  );
+
+
+  context.fill();
+
+
+  context.fillStyle =
+    "#df4e4e";
+
+
+  context.beginPath();
+
+
+  context.arc(
+    x,
+    y,
+    radius - 3,
+    Math.PI,
+    0
+  );
+
+
+  context.fill();
+
+
+  context.fillStyle =
+    "#eee";
+
+
+  context.beginPath();
+
+
+  context.arc(
+    x,
+    y,
+    radius - 3,
+    0,
+    Math.PI
+  );
+
+
+  context.fill();
+
+
+  context.fillStyle =
+    "#111";
+
+
+  context.fillRect(
+    x - radius + 2,
+    y - 2,
+    radius * 2 - 4,
+    4
+  );
+
+}
+
+
+function drawGacha() {
+
+  const width =
+    gachaCanvas.width;
+
+  const height =
+    gachaCanvas.height;
+
+  const center =
+    width / 2;
+
+
+  gctx.fillStyle =
+    "#d7d7d7";
+
+
+  gctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  gctx.fillStyle =
+    "#111";
+
+
+  gctx.fillRect(
+    center - 118,
+    220,
+    236,
+    380
+  );
+
+
+  gctx.fillStyle =
+    "#d24b48";
+
+
+  gctx.fillRect(
+    center - 114,
+    224,
+    228,
+    372
+  );
+
+
+  gctx.fillStyle =
+    "#111";
+
+
+  gctx.beginPath();
+
+
+  gctx.arc(
+    center,
+    220,
+    118,
+    Math.PI,
+    0
+  );
+
+
+  gctx.fill();
+
+
+  gctx.fillStyle =
+    "#ccebf4";
+
+
+  gctx.beginPath();
+
+
+  gctx.arc(
+    center,
+    220,
+    112,
+    Math.PI,
+    0
+  );
+
+
+  gctx.fill();
+
+
+  const balls = [
+    [-73,-20],
+    [-40,-61],
+    [0,-72],
+    [40,-57],
+    [73,-19],
+    [-52,20],
+    [-13,14],
+    [28,15],
+    [60,23]
+  ];
+
+
+  const colors = [
+    "#dc4a48",
+    "#367bd2",
+    "#e4c63b",
+    "#53ae59",
+    "#a96cd1"
+  ];
+
+
+  balls.forEach(
+    (ball,index) => {
+
+      gctx.fillStyle =
+        "#111";
+
+
+      gctx.beginPath();
+
+
+      gctx.arc(
+        center + ball[0],
+        210 + ball[1],
+        20,
+        0,
+        Math.PI * 2
+      );
+
+
+      gctx.fill();
+
+
+      gctx.fillStyle =
+        colors[
+          index %
+          colors.length
+        ];
+
+
+      gctx.beginPath();
+
+
+      gctx.arc(
+        center + ball[0],
+        210 + ball[1],
+        17,
+        0,
+        Math.PI * 2
+      );
+
+
+      gctx.fill();
+
+    }
+  );
+
+
+  gctx.fillStyle =
+    "#111";
+
+
+  gctx.fillRect(
+    center - 42,
+    365,
+    84,
+    84
+  );
+
+
+  gctx.fillStyle =
+    "#edca38";
+
+
+  gctx.fillRect(
+    center - 38,
+    369,
+    76,
+    76
+  );
+
+
+  gctx.fillStyle =
+    "#111";
+
+
+  gctx.fillRect(
+    center - 7,
+    383,
+    14,
+    49
+  );
+
+
+  gctx.fillRect(
+    center - 25,
+    401,
+    50,
+    14
+  );
+
+
+  gctx.fillRect(
+    center - 57,
+    478,
+    114,
+    78
+  );
+
+
+  gctx.fillStyle =
+    "#343434";
+
+
+  gctx.fillRect(
+    center - 50,
+    485,
+    100,
+    64
+  );
+
+
+  if (
+    gachaState ===
+    "falling"
+  ) {
+
+    drawCapsule(
+      gctx,
+      center,
+      capsuleY,
+      27
+    );
+
+  }
+
+
+  if (
+    gachaState ===
+    "ready"
+  ) {
+
+    drawCapsule(
+      gctx,
+      center,
+      515,
+      27
+    );
+
+  }
+
+}
+
+
+/* =========================
+   뽑기 버튼
+========================= */
+
+const gachaPull =
+  document.getElementById(
+    "gachaPull"
+  );
+
+const openCapsule =
+  document.getElementById(
+    "openCapsule"
+  );
+
+const gachaResult =
+  document.getElementById(
+    "gachaResult"
+  );
+
+const resultCanvas =
+  document.getElementById(
+    "resultCanvas"
+  );
+
+const resultContext =
+  resultCanvas.getContext(
+    "2d"
+  );
+
+
+document
+  .getElementById(
+    "gachaButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      showScreen(
+        "gacha"
+      );
+
+      updateUI();
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "gachaBack"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        gachaState ===
+        "falling"
+      ) {
+
+        return;
+
+      }
+
+
+      showScreen(
+        "main"
+      );
+
+    }
+  );
+
+
+gachaPull
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        gachaState !==
+        "idle"
+      ) {
+
+        return;
+
+      }
+
+
+      if (
+        coins <
+        30
+      ) {
+
+        alert(
+          "코인이 부족합니다."
+        );
+
+        return;
+
+      }
+
+
+      coins -=
+        30;
+
+
+      currentGacha =
+        randomCharacter();
+
+
+      capsuleY =
+        245;
+
+
+      gachaState =
+        "falling";
+
+
+      gachaPull
+        .style
+        .display =
+          "none";
+
+
+      updateUI();
+
+
+      setTimeout(
+        () => {
+
+          gachaState =
+            "ready";
+
+
+          openCapsule
+            .style
+            .display =
+              "block";
+
+        },
+        1200
+      );
+
+    }
+  );
+
+
+openCapsule
+  .addEventListener(
+    "click",
+    () => {
+
+      const character =
+        characters[
+          currentGacha
+        ];
+
+
+      owned[
+        currentGacha
+      ]++;
+
+
+      addRoamingCharacter(
+        currentGacha
+      );
+
+
+      resultContext
+        .clearRect(
+          0,
+          0,
+          130,
+          105
+        );
+
+
+      if (
+        character.gold
+        ||
+        character.rarity ===
+        "레어"
+      ) {
+
+        gachaResult
+          .classList
+          .add(
+            "rareGlow"
+          );
+
+
+        for (
+          let i = 0;
+          i < 10;
+          i++
+        ) {
+
+          const angle =
+            Math.PI *
+            2 /
+            10 *
+            i;
+
+
+          resultContext
+            .fillStyle =
+              i % 2 === 0
+              ?
+              "#f1c52c"
+              :
+              "#fff1a0";
+
+
+          resultContext
+            .fillRect(
+              65 +
+              Math.cos(angle) *
+              46,
+              53 +
+              Math.sin(angle) *
+              38,
+              6,
+              6
+            );
+
+        }
+
+      } else {
+
+        gachaResult
+          .classList
+          .remove(
+            "rareGlow"
+          );
+
+      }
+
+
+      drawCharacter(
+        resultContext,
+        character,
+        33,
+        15
+      );
+
+
+      document
+        .getElementById(
+          "resultName"
+        )
+        .textContent =
+          character.name +
+          " / " +
+          character.rarity;
+
+
+      document
+        .getElementById(
+          "resultAbility"
+        )
+        .innerHTML =
+          "<b>" +
+          character.ability +
+          "</b><br>" +
+          character.description;
+
+
+      gachaResult
+        .style
+        .display =
+          "block";
+
+
+      openCapsule
+        .style
+        .display =
+          "none";
+
+
+      gachaState =
+        "result";
+
+
+      updateUI();
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "resultClose"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      gachaResult
+        .style
+        .display =
+          "none";
+
+
+      gachaResult
+        .classList
+        .remove(
+          "rareGlow"
+        );
+
+
+      gachaPull
+        .style
+        .display =
+          "block";
+
+
+      gachaState =
+        "idle";
+
+
+      currentGacha =
+        null;
+
+    }
+  );
+
+
+/* =========================
+   컬렉션
+========================= */
+
+document
+  .getElementById(
+    "collectionButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      buildCollection();
+
+      showScreen(
+        "collection"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "collectionBack"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      showScreen(
+        "main"
+      );
+
+    }
+  );
+
+
+function buildCollection() {
+
+  const list =
+    document.getElementById(
+      "collectionList"
+    );
+
+
+  list.innerHTML =
+    "";
+
+
+  characters.forEach(
+    (character,index) => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "card";
+
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+
+      canvas.width =
+        92;
+
+      canvas.height =
+        90;
+
+
+      const cctx =
+        canvas.getContext(
+          "2d"
+        );
+
+
+      if (
+        owned[index] > 0
+      ) {
+
+        drawCharacter(
+          cctx,
+          character,
+          14,
+          8
+        );
+
+      } else {
+
+        cctx.fillStyle =
+          "#222";
+
+
+        cctx.font =
+          "40px monospace";
+
+
+        cctx.fillText(
+          "?",
+          33,
+          57
+        );
+
+      }
+
+
+      const info =
+        document.createElement(
+          "div"
+        );
+
+
+      info.className =
+        "cardInfo";
+
+
+      if (
+        owned[index] > 0
+      ) {
+
+        info.innerHTML =
+          "<b>" +
+          character.name +
+          "</b><br>" +
+          "등급: " +
+          character.rarity +
+          "<br>" +
+          "보유: " +
+          owned[index] +
+          "개<br>" +
+          "<b>" +
+          character.ability +
+          "</b><br>" +
+          character.description;
+
+
+        if (
+          character.negative
+        ) {
+
+          info.innerHTML +=
+            "<br><b>디버프 적용 중</b>";
+
+        }
+
+      } else {
+
+        info.innerHTML =
+          "<b>미발견 캐릭터</b>" +
+          "<br>???<br>" +
+          "보유 0개";
+
+      }
+
+
+      card.appendChild(
+        canvas
+      );
+
+
+      card.appendChild(
+        info
+      );
+
+
+      list.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================
+   가구 상점
+========================= */
+
+document
+  .getElementById(
+    "furnitureButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      buildFurnitureShop();
+
+      showScreen(
+        "furniture"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "furnitureBack"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      showScreen(
+        "main"
+      );
+
+    }
+  );
+
+
+function buildFurnitureShop() {
+
+  const content =
+    document.getElementById(
+      "furnitureContent"
+    );
+
+
+  content.innerHTML =
+    "";
+
+
+  furnitureCatalog.forEach(
+    (item,index) => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "furnitureCard";
+
+
+      const purchased =
+        purchasedFurniture[
+          index
+        ];
+
+
+      card.innerHTML =
+        '<div class="furnitureTitle">' +
+        item.name +
+        '</div>' +
+        '<div class="furnitureDescription">' +
+        item.description +
+        '<br>가격: ' +
+        item.price +
+        ' 코인</div>';
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.className =
+        "buyFurniture";
+
+
+      button.textContent =
+        purchased
+        ?
+        "구매 완료"
+        :
+        item.price +
+        " COIN 구매";
+
+
+      button.disabled =
+        purchased;
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          if (
+            purchasedFurniture[
+              index
+            ]
+          ) {
+
+            return;
+
+          }
+
+
+          if (
+            coins <
+            item.price
+          ) {
+
+            alert(
+              "코인이 부족합니다."
+            );
+
+            return;
+
+          }
+
+
+          coins -=
+            item.price;
+
+
+          purchasedFurniture[
+            index
+          ] =
+            true;
+
+
+          placedFurniture.push({
+
+            type:
+              item.type,
+
+            x:
+              45 +
+              Math.random() *
+              Math.max(
+                40,
+                mainCanvas.width -
+                100
+              ),
+
+            y:
+              170 +
+              Math.random() *
+              Math.max(
+                60,
+                mainCanvas.height -
+                400
+              )
+
+          });
+
+
+          startFurnitureEffect(
+            item
+          );
+
+
+          updateUI();
+
+          buildFurnitureShop();
+
+        }
+      );
+
+
+      card.appendChild(
+        button
+      );
+
+
+      content.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+function startFurnitureEffect(
+  item
+) {
+
+  setInterval(
+    () => {
+
+      let gain;
+
+
+      if (
+        item.doubleIncome
+      ) {
+
+        gain =
+          calculateIncome() *
+          2;
+
+      } else {
+
+        gain =
+          item.income;
+
+      }
+
+
+      coins +=
+        gain;
+
+
+      updateUI();
+
+    },
+    item.interval
+  );
+
+}
+
+
+/* =========================
+   메인 루프
+========================= */
+
+function loop() {
+
+  if (
+    screens.main
+      .classList
+      .contains(
+        "active"
+      )
+  ) {
+
+    updatePlayer();
+
+    updateRoaming();
+
+    drawMain();
+
+  }
+
+
+  if (
+    screens.gacha
+      .classList
+      .contains(
+        "active"
+      )
+  ) {
+
+    if (
+      gachaState ===
+      "falling"
+    ) {
+
+      capsuleY +=
+        4.3;
+
+
+      if (
+        capsuleY >
+        515
+      ) {
+
+        capsuleY =
+          515;
+
+      }
+
+    }
+
+
+    drawGacha();
+
+  }
+
+
+  requestAnimationFrame(
+    loop
+  );
+
+}
+
+
+/* =========================
+   Safari 주소창 높이 대응
+========================= */
+
+function refreshGameHeight() {
+
+  /*
+    100dvh를 지원하는 브라우저에서는
+    CSS가 알아서 처리한다.
+
+    일부 구형 Safari를 위해
+    실제 innerHeight도 변수로 저장.
+  */
+
+  document
+    .documentElement
+    .style
+    .setProperty(
+      "--real-height",
+      window.innerHeight +
+      "px"
+    );
+
+
+  resizeMainCanvas();
+
+  resizeGachaCanvas();
+
+}
+
+
+window.addEventListener(
+  "resize",
+  refreshGameHeight
+);
+
+
+window.addEventListener(
+  "orientationchange",
+  () => {
+
+    setTimeout(
+      refreshGameHeight,
+      200
+    );
+
+  }
+);
+
+
+if (
+  window.visualViewport
+) {
+
+  window.visualViewport
+    .addEventListener(
+      "resize",
+      refreshGameHeight
+    );
+
+}
+
+
+/* =========================
+   시작
+========================= */
+
+refreshGameHeight();
+
+updateUI();
+
+loop();
+
+</script>
+
+
+<style>
+/* 상세 사양 확장: 원본 픽셀 UI를 그대로 따르는 추가 요소 */
+#resetButton{pointer-events:auto;margin-left:4px;border:2px solid #111;background:#fff;font-size:10px;font-weight:bold;padding:6px}
+#zoneNav{position:absolute;top:78px;left:50%;transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:6px}
+#zoneNav button{width:27px;height:27px;border:2px solid #111;background:#fff;font-weight:900;padding:0}
+#zoneName{min-width:105px;text-align:center}
+#buttons{grid-template-columns:repeat(3,1fr)!important}
+#earnButton{grid-column:1/4;font-size:17px!important;height:50px!important;background:#fff6b0!important}
+#plungerShopButton{display:none!important}
+.extraScreen{background:#fff;overflow:auto;padding-bottom:30px}
+.extraContent{padding:12px}
+.shopRow{border:3px solid #111;margin:10px 0;padding:10px;background:#fff;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.shopRow button,.pixelAction{border:2px solid #111;background:#fff;padding:8px;font-weight:bold}
+.filterBar{display:flex;gap:4px;overflow:auto;margin-bottom:8px}.filterBar button{white-space:nowrap;border:2px solid #111;background:#fff;padding:6px}.filterBar button.on{background:#111;color:#fff}
+#itemButton,#backgroundButton{display:block}
+.auraLegend{filter:drop-shadow(0 0 5px #ffe45c)}.auraCthulhu{filter:drop-shadow(0 0 9px #7b2cff)}
+#wardrobePrompt{display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:60;width:82%;background:#fff;border:3px solid #111;padding:16px;text-align:center}
+#gachaBatch{position:absolute;left:6px;right:6px;bottom:88px;z-index:31;display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
+#gachaBatch button{border:2px solid #111;background:#fff;padding:7px 8px;font-size:10px;font-weight:bold}
+#gachaResult{max-height:76%;overflow:auto}
+.collectionSection{margin:12px 10px 5px;border-bottom:3px solid #111;padding-bottom:5px}.rarityHeading{margin:14px 10px 6px;background:#111;color:#fff;padding:7px;font-size:13px}
+#stats{top:calc(54px + env(safe-area-inset-top));font-size:9px;padding:4px 6px;max-width:96%;overflow:hidden;text-overflow:ellipsis}
+#plungerInfo{top:calc(82px + env(safe-area-inset-top));font-size:9px;padding:4px 6px}
+#zoneNav{top:calc(108px + env(safe-area-inset-top))}
+#zoneName{font-size:10px;padding:4px 6px}
+#gachaBatch{bottom:91px;gap:3px}
+#gachaBatch button{height:29px;max-width:108px;padding:3px 5px;font-size:8px;line-height:1.05}
+#ticketStatus{width:100%;text-align:center;background:#111;color:#fff;padding:3px;font-size:8px}
+.revealFx{position:absolute;inset:0;z-index:45;pointer-events:none;overflow:hidden;animation:fxFade 1.25s forwards}.revealFx i{position:absolute;display:block}
+.revealFx.epic{background:radial-gradient(circle,rgba(255,245,140,.9),rgba(255,190,20,.18) 42%,transparent 70%)}
+.revealFx.epic i{width:8px;height:8px;background:#ffd52d;left:50%;top:50%;animation:goldBurst 1s forwards;transform:rotate(var(--a)) translateX(10px)}
+.revealFx.legendary{background:linear-gradient(90deg,transparent 44%,rgba(190,250,255,.8) 50%,transparent 56%)}
+.revealFx.legendary i{width:7px;height:20px;background:#aef5ff;left:50%;top:48%;clip-path:polygon(50% 0,100% 100%,0 78%);animation:crystalBurst 1.1s forwards;transform:rotate(var(--a))}
+.revealFx.cthulhu{background:radial-gradient(ellipse,rgba(77,18,109,.86),rgba(0,0,0,.8) 58%,rgba(0,0,0,.96));animation:voidPulse 1.45s forwards}
+.revealFx.cthulhu i{width:90px;height:16px;border:5px solid #48c596;border-color:#48c596 transparent transparent #8b35c8;border-radius:50%;left:50%;top:50%;transform-origin:0 50%;animation:tentacleWave 1.2s forwards}
+@keyframes fxFade{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}@keyframes goldBurst{to{transform:rotate(var(--a)) translateX(230px) rotate(180deg);opacity:0}}@keyframes crystalBurst{to{transform:rotate(var(--a)) translateY(-230px) scale(.3);opacity:0}}@keyframes voidPulse{0%{filter:brightness(0)}35%{filter:brightness(1.7)}100%{filter:brightness(.2);opacity:0}}@keyframes tentacleWave{to{transform:rotate(var(--a)) scale(2.8) skewX(25deg);opacity:0}}
+#hiddenNotice{display:none;position:absolute;inset:0;z-index:100;background:rgba(5,3,15,.88);color:#fff;align-items:center;justify-content:center;text-align:center;padding:28px}#hiddenNotice.show{display:flex;animation:hiddenPop 2.8s forwards}#hiddenNoticeBox{width:100%;border:4px solid #f1ce4c;background:#171126;padding:25px 12px;box-shadow:0 0 0 5px #111,0 0 30px #f1ce4c}#hiddenNoticeName{font-size:22px;color:#ffe56b;margin:12px 0}@keyframes hiddenPop{0%{opacity:0;transform:scale(.85)}12%,82%{opacity:1;transform:scale(1)}100%{opacity:0}}
+#hiddenNotice.news{background:rgba(25,0,0,.92)}#hiddenNotice.news #hiddenNoticeBox{border-color:#ff3434;background:#4a0909;box-shadow:0 0 0 5px #111,0 0 34px #ff3434}#hiddenNotice.news #hiddenNoticeName{color:#fff;background:#d71920;padding:8px}#hiddenNotice.boom{background:rgba(30,20,0,.9)}#hiddenNotice.boom #hiddenNoticeBox{border-color:#ffd447;background:#5a4305;box-shadow:0 0 0 5px #111,0 0 38px #ffd447}#hiddenNotice.boom #hiddenNoticeName{color:#211600;background:#ffd447;padding:8px}
+#raceCanvas,#forgeCanvas,#exchangeCanvas{width:100%;display:block;border:3px solid #111;background:#eee;image-rendering:pixelated;margin:10px 0}
+#raceCanvas{height:330px}#forgeCanvas{height:245px}
+#exchangeCanvas{height:145px}
+.miniPanel{border:3px solid #111;background:#fff;padding:10px;margin:10px 0;line-height:1.55}.miniPanel input{width:105px;border:2px solid #111;padding:7px;font:inherit}.miniPanel select{max-width:190px;border:2px solid #111;padding:7px;font:inherit}
+.raceCards{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin:8px 0}.raceCard{border:2px solid #111;background:#fff;padding:6px 2px;font-size:9px;font-weight:bold}.raceCard.on{background:#fff1a2;box-shadow:inset 0 0 0 2px #e0a700}.raceCard:disabled{color:#111;opacity:1}
+#raceMessage,#forgeMessage{min-height:45px;text-align:center;font-weight:bold;margin:8px 0}.miniCurrency{background:#111;color:#fff;padding:7px;text-align:center;font-weight:bold}
+#miniGameButtons{position:absolute;z-index:22;top:calc(51px + env(safe-area-inset-top));left:8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;white-space:nowrap}
+#miniGameButtons button{height:22px;min-width:67px;border:2px solid #111;background:#fff;padding:1px 5px;font-size:8px;font-weight:bold;box-shadow:2px 2px 0 #111}
+#miniGameButtons button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #111}
+#miniMenuOverlay{display:none;position:absolute;inset:0;z-index:95;background:rgba(15,15,20,.48);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:24px}#miniMenuOverlay.show{display:flex}
+#miniMenuBox{width:100%;border:4px solid #111;background:#fff;padding:18px;box-shadow:6px 6px 0 #111;text-align:center}#miniMenuBox h2{margin:0 0 15px}#miniMenuBox .menuGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}#miniMenuBox .menuGrid button,#miniMenuClose{border:3px solid #111;background:#fff;padding:13px 5px;font-weight:bold}#miniMenuClose{width:100%;margin-top:10px;background:#ddd}
+.rpsCards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.rpsCard{border:3px solid #111;background:#fff;padding:4px;box-shadow:3px 3px 0 #111}.rpsCard canvas{display:block;width:100%;aspect-ratio:3/4;image-rendering:pixelated}.rpsCard span{display:block;text-align:center;font-size:10px;font-weight:bold}.rpsCard.ready:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #111}.rpsCard.selected{background:#fff1a2}.rpsCard.reveal{background:#d7f4ff}#rpsMessage{min-height:55px;border:3px solid #111;background:#fff;margin:12px 0;padding:15px 6px;text-align:center;font-size:17px;font-weight:bold}#rpsStart{width:100%;border:3px solid #111;background:#fff1a2;padding:12px;font-weight:bold}
+#economyMenuOverlay{display:none;position:absolute;inset:0;z-index:95;background:rgba(15,15,20,.48);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:24px}#economyMenuOverlay.show{display:flex}#economyMenuBox{width:100%;border:4px solid #111;background:#fff;padding:18px;box-shadow:6px 6px 0 #111;text-align:center}#economyMenuBox .menuGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#economyMenuBox button{border:3px solid #111;background:#fff;padding:12px 3px;font-weight:bold}#economyMenuClose{width:100%;margin-top:10px!important;background:#ddd!important}
+.economyTabs{display:flex;gap:4px;overflow:auto;margin-bottom:8px}.economyTabs button{border:2px solid #111;background:#fff;padding:7px;white-space:nowrap}.economyTabs button.on{background:#111;color:#fff}.marketHead{position:sticky;top:0;z-index:2;background:#111;color:#fff;padding:8px;margin-bottom:8px}.stockRow,.estateRow,.vankiaRow{border:3px solid #111;background:#fff;margin:8px 0;padding:8px}.stockTop{display:flex;justify-content:space-between;gap:6px;font-weight:bold}.up{color:#c62828}.down{color:#1565c0}.stockActions{display:grid;grid-template-columns:1fr auto auto;gap:4px;margin-top:7px}.stockActions input{min-width:0;width:100%;border:2px solid #111;padding:6px}.stockActions button,.estateRow button,.vankiaRow button{border:2px solid #111;background:#fff;padding:6px;font-weight:bold}.spark{width:100%;height:62px;border:2px solid #111;background:#f5f5ef;margin-top:6px}.assetGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.propertyRoom{position:relative;height:300px;border:4px solid #111;background:linear-gradient(#e8d7b8 0 58%,#b78655 58%);overflow:hidden}.placedDecor{position:absolute;border:2px solid #111;background:#fff4b5;padding:4px;font-size:9px;font-weight:bold;touch-action:none}.economyNotice{border:3px solid #111;background:#fff1a2;padding:9px;margin:8px 0;font-weight:bold;text-align:center}
+.bjCards{display:flex;gap:6px;min-height:92px;align-items:center;overflow-x:auto;padding:7px 2px}.bjCard{position:relative;display:flex;flex:0 0 61px;width:61px;height:82px;align-items:center;justify-content:center;border:3px solid #111;background:#fff;box-shadow:3px 3px 0 #111;font-size:16px;font-weight:900}.bjCard.red{color:#c62828}.bjCard.back{color:#ffe16b;background:#345184}.bjCard.back:after{content:"";position:absolute;inset:7px;border:2px solid #ffe16b;background:repeating-linear-gradient(45deg,#29406d 0 5px,#5375ad 5px 10px)}.bjEmpty{color:#555;font-size:11px}
+.bankPanel{border:3px solid #111;background:#fff;padding:10px;margin:9px 0}.bankPanel input,.bankPanel select{width:100%;border:2px solid #111;padding:8px;margin:6px 0}.bankActions{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bankActions button{border:2px solid #111;background:#fff;padding:9px;font-weight:bold}.sharkPage{background:#24070b;color:#fff;padding:10px;min-height:75vh;border:4px solid #111}.sharkPage .bankPanel{background:#4b0c15;color:#fff;border-color:#e53935}.sharkPage button{background:#d11b2c;color:#fff;border-color:#111}.debtWarning{border:4px solid #e53935;background:#170307;color:#ffb6b6;padding:12px;text-align:center;font-weight:bold}
+</style>
+
+<script>
+/* =========================================================
+   2026 상세 사양 패치 — 원본 화면/Canvas 구조 위에서 동작
+========================================================= */
+(() => {
+  const SAVE_KEY = "toiletGrowDetailedV2";
+  const MAX_UPGRADE = 100;
+  const RARITIES = ["일반","레어","에픽","레전더리","크툴루"];
+  const GACHA_PRICE = {일반:30,레어:3000,에픽:10000,레전더리:500000,크툴루:150000000};
+  const SELL_PRICE = {일반:15,레어:50,에픽:175,레전더리:1250,크툴루:500000};
+  const STOCK_CATEGORIES={"도기·화장실":["백자변기","왕실도기","비데테크","타일마스터","도기제국","황금양변기","청정욕실"],"가구·부동산":["변키아","변기타워","황금리조트","욕실건설","휴게소개발","우주부동산","심연궁전"],"전자·로봇":["로봇비데","스마트변기","전자물탱크","센서시트","픽셀가전","자동세척","미래욕실"],"우주·에너지":["우주배관","블랙홀에너지","달기지수도","은하도기","별빛전력","심연연료","포털산업"],"신화·마법":["토르전력","오딘룬","로키마법","라태양광","키르케제약","시바에너지","신화도기"],"청소·배관":["뚜러뻥산업","대걸레공사","청소왕","배관특공대","누수방지","향기화학","막힘해결"],"금융·카지노":["변기은행","골든칩","픽셀카지노","경마금융","블랙잭홀딩스","도신투자","코인금고"],"식품·생활":["변기휴지","욕실생활","캠핑도기","휴게소푸드","물방울음료","왕실생활","깨끗한집"],"바이오·병원":["병원비데","바이오시트","위생연구소","항균도기","미래병원","청정바이오","회복제약"],"고위험 심연주":["크툴루해양","아자토스우주","바알제브","촉수산업","심연안개","외신차원","대공황인버스"]};
+  const STOCKS=Object.entries(STOCK_CATEGORIES).flatMap(([category,names],ci)=>names.map((name,i)=>({name,category,base:Math.round(1000*Math.pow(2,ci)+(i+1)*137)})));
+  const STOCK_PROFILES=STOCKS.map((s,i)=>{
+    const type=i%6,risk=s.category==="고위험 심연주"?1.8:1;
+    return {type,trend:[.002,-.004,0,.001,-.001,.003][type],vol:[.025,.04,.012,.09,.035,.055][type]*risk,cycle:[.006,.009,.004,.015,.025,.01][type],period:[18,13,30,8,20,11][type],phase:(i*1.73)%6.28,shock:type===3?.08:type===4?.04:.015};
+  });
+  const INITIAL_STOCK_HISTORY=STOCKS.map((s,i)=>{const pf=STOCK_PROFILES[i],out=[];let p=s.base;for(let k=0;k<30;k++){const wave=Math.sin(k/pf.period*6.283+pf.phase)*pf.cycle,noise=(((i*37+k*53)%101)/100-.56)*pf.vol;p=Math.max(1,Math.round(p*(1+pf.trend+wave+noise)));out.push(p)}return out});
+  const ESTATES=[
+    ["오래된 상가 화장실",500000000],["대형 휴게소",2000000000],["최고급 호텔",10000000000],["황금 리조트",50000000000],["초고층 변기타워",200000000000],["달 기지",1000000000000],["우주 정거장",5000000000000],["심연의 궁전",20000000000000],["외신의 차원",100000000000000]
+  ].map(([name,base])=>({name,base}));
+  const VANKIA=["왕실 소파","황금 세면대","다이아 욕조","신화 조명","우주 수족관","크툴루 분수","외신의 왕좌","절 석등","픽셀 병풍","카지노 테이블","심해 조명","도시 네온 간판"].map((name,i)=>({name,price:[100000000,500000000,2000000000,10000000000,50000000000,200000000000,1000000000000,3000000000,7000000000,12000000000,18000000000,25000000000][i]}));
+  const NEGATIVE = new Set(["깨진 변기","금간 변기","막힌 변기","녹슨 변기","곰팡이 변기","부러진 변기","썩은 변기"]);
+  const palette = {
+    일반:["#eeeeee","#8b5a35","#e8e2d6","#eeeeee","#f0f0f0","#333","#eaa4ba","#73aee0","#6dbd72","#d95757","#eee","#ddd","#dadada","#e0dfd8","#d8d5cc","#a36846","#9ca377","#c9c9c9","#777a48"],
+    레어:["#35e5c0","#b9efff","#e7e3dc","#98653b","#68737a","#e9f2ec","#d2d7d1","#d8d6cf","#eee8d9","#f4eee0","#bce6ea","#969696","#e1da49","#a8513c","#728159"],
+    에픽:["#e8bb24","#e5b51c","#e7b91d","#d8aa18","#f0c52d","#5f2822","#7e8a91","#dceaf0","#272b2c","#7054d6","#d8d8ee","#be3833","#352c68","#faf5df","#dff3f5","#ead18c"],
+    레전더리:["#698fd9","#c34f43","#a45bd4","#55b9cc","#e7c7a5","#668ee8","#8994a8","#62b878","#e4b62d"],
+    크툴루:["#2b163d","#255c4d"]
+  };
+  const names = {
+    일반:["양변기","푸세식 변기","좌변기","남자 소변기","비데 변기","검은 변기","분홍 변기","파란 변기","초록 변기","빨간 변기","미니 변기","대형 변기","깨진 변기","금간 변기","막힌 변기","녹슨 변기","곰팡이 변기","부러진 변기","썩은 변기"],
+    레어:["네온 변기","얼음 변기","대리석 변기","나무 변기","산업용 변기","병원 변기","학교 변기","공중화장실 변기","휴게소 변기","호텔 변기","투명 변기","콘크리트 변기","고무 변기","벽돌 변기","캠핑 변기"],
+    에픽:["황금 양변기","황금 소변기","황금 비데","황금 푸세식","황금 왕관 변기","용암 변기","로봇 변기","유령 변기","카본 변기","게임기 변기","쌍둥이 변기","폭주 변기","우주 변기","초호화 비데","미래형 변기","왕실 변기"],
+    레전더리:["오디세우스 변기","아가멤논 변기","키르케 변기","칼립소 변기","페넬로페 변기","토르 변기","오딘 변기","로키 변기","태양신 라 변기"],
+    크툴루:["아자토스 변기","크툴루 변기"]
+  };
+  const specialDescriptions = {
+    "오디세우스 변기":"클릭 수입 +25%","아가멤논 변기":"모든 가구 효과 +50%","키르케 변기":"강화 성공 확률 +10%p","칼립소 변기":"클릭 시 15% 확률로 ×10","페넬로페 변기":"모든 돈 수입 +30%","토르 변기":"번개 발동 시 현재 클릭 획득량 ×100 (확률 미정)","오딘 변기":"강화 실패 시 30% 확률로 실패 무효","로키 변기":"돈 획득 시 10% 확률로 ×20","태양신 라 변기":"모든 돈 수입 ×2","크툴루 변기":"전체 돈 ×10 + 심연 보너스 (세부 수치 미정)","아자토스 변기":"전체 돈 ×20 + 현재 돈 비율 획득 (확률/비율 미정)"
+  };
+  const BUFFS={
+    "양변기":{},"푸세식 변기":{click:2},"좌변기":{all:1,auto:[1,5]},"남자 소변기":{click:1.5},"비데 변기":{furniture:2,auto:[1,5]},"검은 변기":{all:2},"분홍 변기":{click:2.5},"파란 변기":{enhance:1},"초록 변기":{furniture:3,auto:[1,5]},"빨간 변기":{click:3},"미니 변기":{click:1,auto:[1,5]},"대형 변기":{all:3,auto:[1,5]},
+    "깨진 변기":{click:-2},"금간 변기":{all:-2},"막힌 변기":{click:-3},"녹슨 변기":{furniture:-3},"곰팡이 변기":{all:-3},"부러진 변기":{enhance:-1},"썩은 변기":{click:-4},
+    "네온 변기":{click:6,auto:[3,4]},"얼음 변기":{all:5,auto:[3,4]},"대리석 변기":{furniture:8},"나무 변기":{click:5},"산업용 변기":{all:7,auto:[3,4]},"병원 변기":{debuffReduce:20,auto:[3,4]},"학교 변기":{enhance:2,auto:[3,4]},"공중화장실 변기":{all:6},"휴게소 변기":{click:7,auto:[3,4]},"호텔 변기":{furniture:10,auto:[3,4]},"투명 변기":{proc:[3,2]},"콘크리트 변기":{all:8},"고무 변기":{click:8},"벽돌 변기":{furniture:9},"캠핑 변기":{all:5,debuffReduce:5,auto:[3,4]},
+    "황금 양변기":{all:15,auto:[5,3]},"황금 소변기":{click:16},"황금 비데":{furniture:20,auto:[5,3]},"황금 푸세식":{all:14},"황금 왕관 변기":{all:18},"용암 변기":{click:18},"로봇 변기":{furniture:18,auto:[5,3]},"유령 변기":{proc:[5,3]},"카본 변기":{click:14},"게임기 변기":{all:13,auto:[5,3]},"쌍둥이 변기":{click:12,furniture:8,auto:[5,3]},"폭주 변기":{proc:[8,3]},"우주 변기":{all:20,auto:[5,3]},"초호화 비데":{furniture:25},"미래형 변기":{enhance:5,auto:[5,3]},"왕실 변기":{all:22,auto:[5,3]},
+    "오디세우스 변기":{click:25,auto:[10,2]},"아가멤논 변기":{furniture:50,auto:[10,2]},"키르케 변기":{enhance:10},"칼립소 변기":{},"페넬로페 변기":{all:30,auto:[10,2]},"토르 변기":{},"오딘 변기":{},"로키 변기":{},"태양신 라 변기":{auto:[10,2]},
+    "아자토스 변기":{auto:[15,1]},"크툴루 변기":{auto:[15,1]}
+  };
+  Object.assign(BUFFS,{
+    "물리학자 변기":{enhance:1.5},"은색 변기":{click:3},"종이 변기":{furniture:3},"청소 변기":{debuffReduce:10},"찌그러진 변기":{click:-3},"냄새나는 변기":{all:-4},"물새는 변기":{furniture:-4},"흔들리는 변기":{enhance:-2},"진흙 변기":{click:-2},"먼지 변기":{autoPenalty:10},
+    "UFO 변기":{all:7,auto:[3,4]},"해적 변기":{click:8},"용접 변기":{furniture:11},"전기 변기":{click:9},"저주받은 변기":{all:-6},"폭발한 변기":{click:-7},"바이러스 변기":{enhance:-3},"독 변기":{all:-5},"방사능 변기":{autoPenalty:20},"감옥 변기":{all:-4,furniture:5},
+    "악마 변기":{click:20},"블랙홀 변기":{all:25,auto:[5,3]},"시간여행 변기":{enhance:6},"천사 변기":{all:18,auto:[5,3]},"핵폐기물 변기":{all:-10},"슬라임 변기":{click:-8,auto:[5,3]},"저승 변기":{all:-12},"얼어붙은 황금 변기":{furniture:22},"슬롯머신 변기":{proc:[4,5]},"심판 변기":{all:-8,click:10},
+    "시바신 변기":{click:35},"무지개 변기":{click:10},"부자 일론머스크 변기":{all:5,auto:[8,10]},"노예 변기":{},"신의 변기":{},"부처 변기":{},"도박꾼 변기":{},"거지 변기":{all:-10},"수집가 변기":{},"타락한 신 변기":{all:30,enhance:-10},"경마 변기":{},"해파이스토스 변기":{enhance:5}
+  });
+  function buffText(n){const b=BUFFS[n]||{},parts=[];if(b.click)parts.push(`클릭 수입 ${b.click>0?"+":""}${b.click}%`);if(b.all)parts.push(`전체 수입 ${b.all>0?"+":""}${b.all}%`);if(b.furniture)parts.push(`가구 효과 ${b.furniture>0?"+":""}${b.furniture}%`);if(b.enhance)parts.push(`강화 확률 ${b.enhance>0?"+":""}${b.enhance}%p`);if(b.debuffReduce)parts.push(`디버프 ${b.debuffReduce}% 감소`);if(b.autoPenalty)parts.push(`자동수익 -${b.autoPenalty}%`);if(b.proc)parts.push(`클릭 시 ${b.proc[0]}% 확률로 ×${b.proc[1]}`);if(b.auto)parts.push(`${b.auto[1]}초마다 자동 +${b.auto[0]}`);return parts.join(" / ")}
+  const typeFor = n => n.includes("푸세식") ? "outhouse" : n.includes("소변기") ? "urinal" : n==="좌변기" ? "seat" : n.includes("비데") ? "bidet" : n==="미니 변기" ? "mini" : n==="대형 변기" ? "giant" : n==="깨진 변기" ? "broken" : n==="금간 변기" ? "cracked" : n==="막힌 변기" ? "clogged" : "toilet";
+  const newCharacters=[];
+  RARITIES.forEach(r=>names[r].forEach((n,i)=>newCharacters.push({name:n,rarity:r,type:typeFor(n),color:palette[r][i],water:r==="크툴루"?"#62d6a8":"#66bada",weight:1,negative:NEGATIVE.has(n),gold:n.includes("황금"),ability:specialDescriptions[n]?"고유 능력":(NEGATIVE.has(n)?"디버프":"등급 버프"),description:specialDescriptions[n]||(NEGATIVE.has(n)?"보유 중 클릭 수입 -10%":"보유 시 수입 보너스")})));
+  const extraGroups={
+    일반:["물리학자 변기","은색 변기","종이 변기","청소 변기","찌그러진 변기","냄새나는 변기","물새는 변기","흔들리는 변기","진흙 변기","먼지 변기"],
+    레어:["UFO 변기","해적 변기","용접 변기","전기 변기","저주받은 변기","폭발한 변기","바이러스 변기","독 변기","방사능 변기","감옥 변기"],
+    에픽:["악마 변기","블랙홀 변기","시간여행 변기","천사 변기","핵폐기물 변기","슬라임 변기","저승 변기","얼어붙은 황금 변기","슬롯머신 변기","심판 변기"],
+    레전더리:["시바신 변기","토끼공듀 변기"],크툴루:["바알제브 변기"],히든:["무지개 변기","부자 일론머스크 변기","노예 변기","신의 변기","부처 변기","도박꾼 변기","거지 변기","수집가 변기","타락한 신 변기","경마 변기","해파이스토스 변기","도신 변기","변키아 직원 변기","워렌 버핏 변기"]
+  };
+  const extraColors={일반:"#bfc5c8",레어:"#62bbd2",에픽:"#8d4fbd",레전더리:"#5d84d8",크툴루:"#351426",히든:"#f0d75c"};
+  ["찌그러진 변기","냄새나는 변기","물새는 변기","흔들리는 변기","진흙 변기","먼지 변기","저주받은 변기","폭발한 변기","바이러스 변기","독 변기","방사능 변기","감옥 변기","핵폐기물 변기","슬라임 변기","저승 변기","심판 변기","바알제브 변기","노예 변기","거지 변기","타락한 신 변기"].forEach(n=>NEGATIVE.add(n));
+  Object.entries(extraGroups).forEach(([r,list])=>list.forEach((n,i)=>newCharacters.push({name:n,rarity:r,type:"toilet",color:extraColors[r],water:r==="크툴루"?"#7b2b54":"#66bada",weight:1,negative:NEGATIVE.has(n),gold:n.includes("황금"),ability:"특수 능력",description:""})));
+  Object.assign(specialDescriptions,{"시바신 변기":"클릭 수입 +35%","바알제브 변기":"획득 즉시 남은 코인이 0","무지개 변기":"무지개 잔상 + 클릭 수입 +10%","부자 일론머스크 변기":"누적 1억 코인 보상 / 전체 수입 +5% / 10초마다 +8","노예 변기":"3초마다 -5 / 판매·제거 불가","신의 변기":"전체 수입 ×3","부처 변기":"모든 캐릭터 디버프 무효화","도박꾼 변기":"클릭 시 5% ×10 / 5% 0코인","거지 변기":"전체 수입 -10% / 막힘 손실 10% / 제거 불가","수집가 변기":"모든 자동수익 +25%","타락한 신 변기":"전체 수입 +30% / 강화 성공률 -10%p","경마 변기":"변기 경마 7연속 적중 기념 / 능력 없음","해파이스토스 변기":"본게임 강화 성공 확률 +5%p"});
+  Object.assign(specialDescriptions,{"토끼공듀 변기":"쿠폰으로만 얻는 레전더리","경마 변기":"변기 경마 5연속 적중 기념 / 능력 없음","도신 변기":"블랙잭 7연승 기념 / 능력 없음","변키아 직원 변기":"변키아 가구 전부 수집 / 능력 없음","워렌 버핏 변기":"주식 장기 업적 보상"});
+  newCharacters.forEach(c=>{if(c.rarity==="크툴루"||c.rarity==="히든")return;const b=BUFFS[c.name]||{},factor=c.rarity==="레전더리"?.8:.9;["click","all","furniture","enhance"].forEach(k=>{if(b[k]>0)b[k]=Math.round(b[k]*factor*10)/10});if(b.proc)b.proc=[Math.max(1,Math.round(b.proc[0]*(c.rarity==="레전더리"?.8:.9)*10)/10),b.proc[1]]});
+  Object.assign(specialDescriptions,{"오디세우스 변기":"클릭 수입 +20%","아가멤논 변기":"모든 가구 효과 +40%","키르케 변기":"강화 성공률 +8%p","칼립소 변기":"클릭 시 12% 확률로 ×10","페넬로페 변기":"전체 수입 +24%","토르 변기":"번개 발동 시 클릭 획득량 ×80 (발동 확률 미정)","오딘 변기":"강화 실패 시 24% 확률로 실패 무효","로키 변기":"돈 획득 시 8% 확률로 ×20","태양신 라 변기":"모든 돈 수입 ×1.8","시바신 변기":"클릭 수입 +28%"});
+  newCharacters.forEach((c,i)=>{if(c.rarity!=="히든"){const same=newCharacters.filter(x=>x.rarity===c.rarity),pos=same.indexOf(c);c.rollWeight=pos<Math.ceil(same.length/2)?3:1}else c.rollWeight=0;if(c.name==="바알제브 변기")c.rollWeight=0});
+  characters.splice(0,characters.length,...newCharacters);
+  const DISPLAY_RARITIES=[...RARITIES,"히든"];
+  characters.forEach(c=>{const base=specialDescriptions[c.name],b=BUFFS[c.name]||{},extra=base?(b.auto?`${b.auto[1]}초마다 자동 +${b.auto[0]}`:""):buffText(c.name);c.ability=c.negative?"약한 디버프":base?"고유 능력":"고유 버프";c.description=[base,extra,"같은 변기 효과 최대 3개 중첩"].filter(Boolean).join(" / ")});
+  owned.splice(0,owned.length,...new Array(characters.length).fill(0)); owned[0]=1;
+
+  const furnitureNew=[
+    ["화분","flower",1200,8],["책상","desk",1500,8],["의자","chair",1900,13],["세면대","sink",3000,13],["욕조","bath",5000,18],["오토바이","motorcycle",8000,23],["TV","tv",12000,28],["금고","safe",18000,40],["분수","fountain",28000,55],["황금 동상","statue",45000,85]
+  ].map(v=>({name:v[0],type:v[1],price:v[2],effect:v[3],description:`모든 돈 수입 +${v[3]}%`}));
+  furnitureCatalog.splice(0,furnitureCatalog.length,...furnitureNew);
+  purchasedFurniture.splice(0,purchasedFurniture.length,...new Array(furnitureNew.length).fill(false));
+
+  moneyPower=.5; earnCooldown=.1; upgradeCost=25;
+  let upgradeLevel=0, upgradeAttempt=0, currentZone="일반", currentSkin="양변기", mops=0, wardrobe=false;
+  let unlockedBackgrounds={기본:true,황금:false,다이아:false,우주:false,절:false,카지노:false,심해:false,도시:false}, currentBackground="기본", activeFilter="일반", plungerMode=false, resetting=false, furniturePlacementIndex=null, trophyUnlocked=false, lastSavedAt=Date.now(), discovered=new Array(characters.length).fill(false),totalEarned=0,raceChips=0,victoryChips=0,raceStreak=0,forgeLevel=0,forgeGuards=0,gachaTickets={레어:0,에픽:0,레전더리:0},rpsWinMoney=0,stockPrices=INITIAL_STOCK_HISTORY.map(h=>h.at(-1)),stockHistory=INITIAL_STOCK_HISTORY.map(h=>[...h]),stockOwned=STOCKS.map(()=>0),stockAverage=STOCKS.map(()=>0),stockLastTick=Date.now(),stockSellLockedUntil=0,estatePrices=ESTATES.map(e=>e.base),estateOwned=ESTATES.map(()=>false),estateListings=ESTATES.map(()=>0),vankiaOwned=VANKIA.map(()=>false),vankiaPlaced=[],selectedEstate=0,blackjackStreak=0,usedCoupons=[],bankSavings=0,bankLoan=0,bankCollateral="",sharkLoan=0,financeTickAt=Date.now(),rehabTickets=0,rehabUses=0,bankWithdrawal=0,bankWithdrawalDue=0,taxLastAt=Date.now();discovered[0]=true;
+
+  function idx(name){return characters.findIndex(c=>c.name===name)}
+  function has(name){const i=idx(name);return i>=0&&owned[i]>0}
+  function stacks(name){const i=idx(name);return i<0?0:Math.min(3,owned[i]||0)}
+  function uniqueRoamers(){
+    roamingCharacters.splice(0,roamingCharacters.length);
+    characters.forEach((c,i)=>{if(i!==0&&owned[i]>0&&c.rarity===currentZone&&currentZone!=="히든")addRoamingCharacter(i)});
+  }
+  function checkTrophyAchievement(){if(!trophyUnlocked&&characters.every((c,i)=>c.rarity==="히든"||discovered[i])){trophyUnlocked=true;save();setTimeout(()=>alert("일반부터 크툴루까지 93종 수집 완료!\n트로피 구역이 영구 해금되었습니다."),100)}}
+  function zoneList(){return trophyUnlocked?[...RARITIES,"히든","트로피"]:[...RARITIES,"히든"]}
+  const hiddenNotice=document.createElement("div");hiddenNotice.id="hiddenNotice";hiddenNotice.innerHTML='<div id="hiddenNoticeBox"><div>전체 공지</div><div id="hiddenNoticeName"></div><div id="hiddenNoticeReason"></div></div>';document.getElementById("game").appendChild(hiddenNotice);
+  const hiddenNoticeQueue=[];let hiddenNoticeActive=false;function hiddenAnnouncement(name,reason){hiddenNoticeQueue.push([name,reason]);showNextHiddenNotice()}function showNextHiddenNotice(){if(hiddenNoticeActive||!hiddenNoticeQueue.length)return;hiddenNoticeActive=true;const [name,reason]=hiddenNoticeQueue.shift(),news=name==="정부 속보",boom=name==="황금 속보";document.getElementById("hiddenNoticeName").textContent=news?"정부 속보":boom?"황금 속보":"히든 변기 발견! "+name;document.getElementById("hiddenNoticeReason").textContent=reason;hiddenNotice.classList.toggle("news",news);hiddenNotice.classList.toggle("boom",boom);hiddenNotice.classList.remove("show");void hiddenNotice.offsetWidth;hiddenNotice.classList.add("show");setTimeout(()=>{hiddenNotice.classList.remove("show");hiddenNoticeActive=false;showNextHiddenNotice()},2900)}
+  function grantHidden(name,reason){const i=idx(name);if(i<0||discovered[i])return false;discovered[i]=true;owned[i]=1;hiddenAnnouncement(name,reason);uniqueRoamers();save();return true}
+  const discoveredAll=list=>list.every(n=>{const i=idx(n);return i>=0&&discovered[i]});
+  function evaluateHidden(){
+    const colors=["검은 변기","분홍 변기","파란 변기","초록 변기","빨간 변기","은색 변기","황금 양변기","황금 소변기","황금 비데","황금 푸세식","황금 왕관 변기","얼어붙은 황금 변기"];
+    const royals=["황금 왕관 변기","왕실 변기","아가멤논 변기","태양신 라 변기","시바신 변기"],randoms=["투명 변기","유령 변기","폭주 변기","칼립소 변기","로키 변기","슬롯머신 변기"];
+    if(discoveredAll(colors))grantHidden("무지개 변기","색깔 계열 변기 전부 도감 등록");if(totalEarned>=100000000)grantHidden("부자 일론머스크 변기","누적 1억 코인 획득");if(discoveredAll(royals))grantHidden("노예 변기","왕·왕족 계열 변기 전부 도감 등록");
+    const nonHidden=characters.map((c,i)=>[c,i]).filter(([c])=>c.rarity!=="히든");if(nonHidden.filter(([c,i])=>discovered[i]).length>=75)grantHidden("수집가 변기","히든 제외 도감 75종 등록");if(nonHidden.every(([c,i])=>discovered[i]))grantHidden("신의 변기","히든 제외 93종 전부 도감 등록");
+    if(discoveredAll(randoms))grantHidden("도박꾼 변기","확률형 변기 전부 도감 등록");if(totalEarned>=1000000&&coins<=0)grantHidden("거지 변기","누적 100만 이상 달성 후 보유 코인 0");const debuffs=characters.filter(c=>c.rarity!=="히든"&&c.negative).map(c=>c.name);if(discoveredAll(debuffs))grantHidden("타락한 신 변기","모든 디버프 변기 도감 등록");
+    const buddhaOthers=extraGroups.히든.filter(n=>n!=="부처 변기");if(discoveredAll(buddhaOthers))grantHidden("부처 변기",`자신을 제외한 히든 ${buddhaOthers.length}종 획득`);checkTrophyAchievement()
+  }
+  function buffSum(key){let pos=0,neg=0,reduce=0;const immune=has("부처 변기"),debtStack=bankLoan>3000?5:3;characters.forEach((c,i)=>{const raw=owned[i]||0,b=BUFFS[c.name]||{},v=b[key]||0,count=Math.min(v<0?debtStack:3,raw);if(!count)return;if(v>0)pos+=v*count;else if(!immune)neg+=v*count;reduce+=(b.debuffReduce||0)*Math.min(3,raw)});neg=Math.max(-15,neg)*(1-Math.min(80,reduce)/100);if(bankLoan>0){pos*=.8;neg*=1.5}if(sharkLoan>0){pos*=.4;neg*=10}return pos+neg}
+  function multiplier(){let furnitureBonus=0;purchasedFurniture.forEach((b,i)=>{if(b)furnitureBonus+=furnitureCatalog[i].effect/100});furnitureBonus*=1+buffSum("furniture")/100;let m=(1+furnitureBonus)*(1+buffSum("all")/100);m*=Math.pow(1.8,stacks("태양신 라 변기"));if(bankLoan<=0&&sharkLoan<=0){m*=Math.pow(3,stacks("크툴루 변기"));m*=Math.pow(5,stacks("아자토스 변기"));if(has("크툴루 변기")&&has("아자토스 변기"))m*=2}m*=Math.pow(3,stacks("신의 변기"));return Math.max(.01,m)}
+  calculateCooldown=()=>.1;
+  calculateIncome=()=>Math.max(.1,moneyPower*(1+buffSum("click")/100)*multiplier());
+  function autoRate(){let rate=0,penalty=0;const immune=has("부처 변기");characters.forEach((c,i)=>{const count=Math.min(3,owned[i]||0),b=BUFFS[c.name]||{},a=b.auto;if(count&&a)rate+=a[0]/a[1]*count;if(count&&!immune)penalty+=(b.autoPenalty||0)*count});if(has("수집가 변기"))rate*=1+.25*stacks("수집가 변기");rate*=Math.max(.2,1-Math.min(80,penalty)/100);rate*=multiplier();if(has("노예 변기")&&!immune)rate-=5/3*stacks("노예 변기");return rate}
+  function wealthCleaner(before){const limit=99900000000;if(before<=limit&&coins>limit&&Math.random()<.1){const loss=coins*.1;coins-=loss;setTimeout(()=>alert(`청소아줌마 등장!\n999억 코인을 넘어 재산의 10%인 ${fmt(loss)}코인을 가져갔습니다.`),80)}}
+  function fmt(v){return (Math.round(v*10)/10).toLocaleString("ko-KR",{minimumFractionDigits:1,maximumFractionDigits:1})}
+  function effectiveChance(){return Math.min(100,Math.max(15,100-Math.floor(upgradeAttempt/2)*7-(upgradeAttempt%2?2:0)+buffSum("enhance")))}
+  function triggerGameOver(){return false}
+  function save(){if(resetting)return;
+    if(triggerGameOver())return;
+    lastSavedAt=Date.now();const data={saveSchema:10,playerNameValue,coins,moneyPower,upgradeCost,upgradeLevel,upgradeAttempt,owned:[...owned],discovered:[...discovered],purchasedFurniture:[...purchasedFurniture],placedFurniture,plungers,mops,wardrobe,currentSkin,unlockedBackgrounds,currentBackground,currentZone,trophyUnlocked,totalEarned,raceChips,victoryChips,raceStreak,forgeLevel,forgeGuards,gachaTickets,rpsWinMoney,stockPrices,stockHistory,stockOwned,stockAverage,stockLastTick,stockSellLockedUntil,estatePrices,estateOwned,estateListings,vankiaOwned,vankiaPlaced,selectedEstate,blackjackStreak,usedCoupons,bankSavings,bankLoan,bankCollateral,sharkLoan,financeTickAt,rehabTickets,rehabUses,bankWithdrawal,bankWithdrawalDue,taxLastAt,lastSavedAt};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+  }
+  function load(){
+    try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(!d)return false;
+      playerNameValue=d.playerNameValue||"PLAYER";coins=+d.coins||0;moneyPower=+d.moneyPower||.5;upgradeCost=+d.upgradeCost||25;upgradeLevel=Math.min(MAX_UPGRADE,+d.upgradeLevel||0);upgradeAttempt=+d.upgradeAttempt||0;
+      d.owned?.forEach((v,i)=>{if(i<owned.length)owned[i]=v});if(d.discovered)d.discovered.forEach((v,i)=>{if(i<discovered.length)discovered[i]=!!v});else owned.forEach((v,i)=>{if(v>0)discovered[i]=true});if((+d.saveSchema||0)<3){const oldChessIndex=idx("경마 변기");if(oldChessIndex>=0){owned[oldChessIndex]=0;discovered[oldChessIndex]=false}}d.purchasedFurniture?.forEach((v,i)=>{if(i<purchasedFurniture.length)purchasedFurniture[i]=v});placedFurniture.splice(0,placedFurniture.length,...(d.placedFurniture||[]));
+      plungers=+d.plungers||0;mops=+d.mops||0;wardrobe=!!d.wardrobe;currentSkin=d.currentSkin||"양변기";unlockedBackgrounds={...unlockedBackgrounds,...d.unlockedBackgrounds};currentBackground=d.currentBackground||"기본";trophyUnlocked=!!d.trophyUnlocked;totalEarned=+d.totalEarned||0;raceChips=Math.max(0,Math.floor(+d.raceChips||0));victoryChips=Math.max(0,Math.floor(+d.victoryChips||0));raceStreak=Math.max(0,Math.floor(+d.raceStreak||0));forgeLevel=Math.max(0,Math.min(16,Math.floor(+d.forgeLevel||0)));forgeGuards=Math.max(0,Math.floor(+d.forgeGuards||0));gachaTickets={레어:Math.max(0,Math.floor(+d.gachaTickets?.레어||0)),에픽:Math.max(0,Math.floor(+d.gachaTickets?.에픽||0)),레전더리:Math.max(0,Math.floor(+d.gachaTickets?.레전더리||0))};rpsWinMoney=Math.max(0,Math.floor(+d.rpsWinMoney||0));currentZone=d.currentZone==="트로피"&&!trophyUnlocked?"일반":d.currentZone||"일반";
+      if(Array.isArray(d.stockPrices)&&d.stockPrices.length===STOCKS.length)stockPrices=d.stockPrices.map(Number);if(Array.isArray(d.stockHistory)&&d.stockHistory.length===STOCKS.length)stockHistory=d.stockHistory;if(Array.isArray(d.stockOwned))d.stockOwned.forEach((v,i)=>{if(i<stockOwned.length)stockOwned[i]=Math.max(0,Math.floor(+v||0))});if(Array.isArray(d.stockAverage))d.stockAverage.forEach((v,i)=>{if(i<stockAverage.length)stockAverage[i]=+v||0});stockLastTick=+d.stockLastTick||Date.now();stockSellLockedUntil=+d.stockSellLockedUntil||0;if(Array.isArray(d.estatePrices))d.estatePrices.forEach((v,i)=>{if(i<estatePrices.length)estatePrices[i]=+v||ESTATES[i].base});if(Array.isArray(d.estateOwned))d.estateOwned.forEach((v,i)=>{if(i<estateOwned.length)estateOwned[i]=!!v});if(Array.isArray(d.estateListings))d.estateListings.forEach((v,i)=>{if(i<estateListings.length)estateListings[i]=+v||0});if(Array.isArray(d.vankiaOwned))d.vankiaOwned.forEach((v,i)=>{if(i<vankiaOwned.length)vankiaOwned[i]=!!v});vankiaPlaced=Array.isArray(d.vankiaPlaced)?d.vankiaPlaced:[];selectedEstate=Math.max(0,Math.min(ESTATES.length-1,+d.selectedEstate||0));
+      blackjackStreak=Math.max(0,Math.floor(+d.blackjackStreak||0));usedCoupons=Array.isArray(d.usedCoupons)?d.usedCoupons:[];
+      bankSavings=Math.max(0,+d.bankSavings||0);bankLoan=Math.max(0,+d.bankLoan||0);bankCollateral=d.bankCollateral||"";sharkLoan=Math.max(0,+d.sharkLoan||0);financeTickAt=+d.financeTickAt||Date.now();rehabTickets=Math.max(0,Math.floor(+d.rehabTickets||0));rehabUses=Math.max(0,Math.min(2,Math.floor(+d.rehabUses||0)));bankWithdrawal=Math.max(0,+d.bankWithdrawal||0);bankWithdrawalDue=+d.bankWithdrawalDue||0;taxLastAt=+d.taxLastAt||Date.now();if((+d.saveSchema||0)<9)estatePrices=ESTATES.map(e=>e.base);if((+d.saveSchema||0)<10){stockHistory=INITIAL_STOCK_HISTORY.map(h=>[...h]);stockPrices=stockHistory.map(h=>h.at(-1))}
+      const elapsed=Math.max(0,(Date.now()-(+d.lastSavedAt||Date.now()))/1000),offline=Math.floor(autoRate()*elapsed*10)/10;if(offline!==0){const before=coins;coins+=offline;if(offline>0)totalEarned+=offline;wealthCleaner(before)}lastSavedAt=Date.now();document.getElementById("playerName").textContent=playerNameValue;if(triggerGameOver())return false;showScreen("main");uniqueRoamers();if(offline!==0)setTimeout(()=>toast(`오프라인 정산: ${offline>0?"+":""}${fmt(offline)}코인`),250);return true;
+    }catch(e){return false}
+  }
+  updateUI=function(){if(triggerGameOver())return;coinText.textContent=fmt(coins);gachaCoinText.textContent=fmt(coins);plungerCount.textContent=`${plungers} / 걸레 ${mops}`;stats.textContent=upgradeLevel>=MAX_UPGRADE?`획득 ${fmt(calculateIncome())} | 쿨 0.1초 | 강화 완료 ${MAX_UPGRADE}강`:`획득 ${fmt(calculateIncome())} | 쿨 0.1초 | 강화 ${effectiveChance()}% | 비용 ${upgradeCost}`;document.getElementById("zoneName").textContent=currentZone+" 구역"}
+  function cloneButton(id){const old=document.getElementById(id),neo=old.cloneNode(true);old.replaceWith(neo);return neo}
+
+  const playerBox=document.getElementById("playerName");const reset=document.createElement("button");reset.id="resetButton";reset.textContent="다시 만들기";playerBox.after(reset);
+  reset.onclick=()=>{if(confirm("정말 처음부터 다시 만드시겠습니까?\n저장된 진행 상황이 모두 삭제됩니다.")){resetting=true;localStorage.removeItem(SAVE_KEY);location.reload()}};
+  const nav=document.createElement("div");nav.id="zoneNav";nav.innerHTML='<button id="zonePrev">◀</button><div id="zoneName" class="pixelBox">일반 구역</div><button id="zoneNext">▶</button>';document.getElementById("mainScreen").appendChild(nav);
+  const changeZone=d=>{const zones=zoneList();let i=(zones.indexOf(currentZone)+d+zones.length)%zones.length;currentZone=zones[i];uniqueRoamers();updateUI();save()};
+  nav.querySelector("#zonePrev").onclick=()=>changeZone(-1);nav.querySelector("#zoneNext").onclick=()=>changeZone(1);
+  document.getElementById("moveHelp").textContent="빈 곳 두 번 터치: 이동";
+  const buttons=document.getElementById("buttons");
+  const bgBtn=document.createElement("button");bgBtn.id="backgroundButton";bgBtn.className="mainButton";bgBtn.textContent="배경";buttons.appendChild(bgBtn);
+  const itemBtn=document.createElement("button");itemBtn.id="itemButton";itemBtn.className="mainButton";itemBtn.textContent="아이템";buttons.appendChild(itemBtn);
+
+  function screen(id,title){const s=document.createElement("div");s.id=id;s.className="screen pageScreen extraScreen";s.innerHTML=`<div class="pageHeader"><h2>${title}</h2><button class="backButton">뒤로</button></div><div class="extraContent"></div>`;document.getElementById("game").appendChild(s);screens[id]=s;s.querySelector(".backButton").onclick=()=>showScreen("main");return s.querySelector(".extraContent")}
+  const bgContent=screen("background","배경"); const itemContent=screen("items","아이템");
+  const raceContent=screen("race","변기 경마");const forgeContent=screen("forge","변기 강화");const exchangeContent=screen("exchange","환전소");const rpsContent=screen("rps","가위바위보");const blackjackContent=screen("blackjack","픽셀 블랙잭");const couponContent=screen("coupon","쿠폰 입력");
+  const miniGameButtons=document.createElement("div");miniGameButtons.id="miniGameButtons";document.getElementById("mainScreen").appendChild(miniGameButtons);
+  const miniGameButton=document.createElement("button");miniGameButton.textContent="미니게임";miniGameButtons.appendChild(miniGameButton);
+  const miniMenu=document.createElement("div");miniMenu.id="miniMenuOverlay";miniMenu.innerHTML='<div id="miniMenuBox"><h2>미니게임</h2><div class="menuGrid"><button id="raceButton">변기 경마</button><button id="forgeButton">변기 강화</button><button id="exchangeButton">환전소</button><button id="rpsButton">가위바위보</button><button id="blackjackButton">블랙잭</button><button id="couponButton">쿠폰 입력</button></div><button id="miniMenuClose">닫기</button></div>';document.getElementById("mainScreen").appendChild(miniMenu);
+  const raceButton=miniMenu.querySelector("#raceButton"),forgeButton=miniMenu.querySelector("#forgeButton"),exchangeButton=miniMenu.querySelector("#exchangeButton"),rpsButton=miniMenu.querySelector("#rpsButton"),blackjackButton=miniMenu.querySelector("#blackjackButton"),couponButton=miniMenu.querySelector("#couponButton");miniGameButton.onclick=()=>miniMenu.classList.add("show");miniMenu.querySelector("#miniMenuClose").onclick=()=>miniMenu.classList.remove("show");miniMenu.onclick=e=>{if(e.target===miniMenu)miniMenu.classList.remove("show")};const closeMiniMenu=()=>miniMenu.classList.remove("show");
+
+  /* 미니게임과 분리된 후반 경제 콘텐츠 */
+  const stockContent=screen("stockMarket","주식시장"),estateContent=screen("realEstate","부동산"),vankiaContent=screen("vankia","변키아"),bankContent=screen("bank","은행"),sharkContent=screen("loanShark","대부업체");
+  const economyButton=document.createElement("button");economyButton.textContent="주식";miniGameButtons.appendChild(economyButton);
+  const economyMenu=document.createElement("div");economyMenu.id="economyMenuOverlay";economyMenu.innerHTML='<div id="economyMenuBox"><h2>경제 콘텐츠</h2><div class="menuGrid"><button id="stockOpen">주식시장</button><button id="estateOpen">부동산</button><button id="vankiaOpen">변키아</button><button id="bankOpen">통장</button><button id="sharkOpen">대부업체</button></div><button id="economyMenuClose">닫기</button></div>';document.getElementById("mainScreen").appendChild(economyMenu);
+  economyButton.onclick=()=>economyMenu.classList.add("show");economyMenu.querySelector("#economyMenuClose").onclick=()=>economyMenu.classList.remove("show");economyMenu.onclick=e=>{if(e.target===economyMenu)economyMenu.classList.remove("show")};
+  const sharkWarning=document.createElement("div");sharkWarning.id="sharkWarningOverlay";sharkWarning.style.cssText="display:none;position:absolute;inset:0;z-index:110;background:rgba(20,0,3,.88);align-items:center;justify-content:center;padding:24px";sharkWarning.innerHTML='<div class="debtWarning" style="width:100%"><h2>대부업체 경고</h2><p>시간당 이자 50%, 버프 60% 감소, 디버프 10배, 크툴루 버프 정지와 자산 강제 판매 위험이 있습니다.</p><div class="bankActions"><button id="sharkEnter" class="pixelAction">위험을 확인하고 입장</button><button id="sharkCancel" class="pixelAction">취소</button></div></div>';document.getElementById("mainScreen").appendChild(sharkWarning);
+  const openSharkWarning=()=>{economyMenu.classList.remove("show");sharkWarning.style.display="flex"};sharkWarning.querySelector("#sharkCancel").onclick=()=>sharkWarning.style.display="none";sharkWarning.querySelector("#sharkEnter").onclick=()=>{sharkWarning.style.display="none";buildShark();showScreen("loanShark")};
+  const marketOpen=()=>true;
+  function marketTick(force=false){const now=Date.now(),step=60000;if(!force&&now-stockLastTick<step){settleEstateListings();return}const turns=Math.min(120,Math.max(1,Math.floor((now-stockLastTick)/step)));let event="",eventType="";for(let t=0;t<turns;t++){const r=Math.random(),stockBoom=Math.random()<.003,estateBoom=Math.random()<.001;let global=1;if(r<.006){global=.5;event="대공황 발생! 모든 주식과 부동산이 50% 하락했습니다.";eventType="정부 속보"}else if(r<.026){global=.86;event="정부 규제! 모든 주식과 부동산이 하락했습니다.";eventType="정부 속보"}const stockRise=stockBoom?1.08+Math.random()*.10:1,estateRise=estateBoom?1.25+Math.random()*.25:1;stockPrices=stockPrices.map((p,i)=>{const pf=STOCK_PROFILES[i],age=(stockHistory[i]||[]).length,cycle=Math.sin(age/pf.period*6.283+pf.phase)*pf.cycle,shock=Math.random()<.035?(Math.random()<.5?-pf.shock:pf.shock):0,move=pf.trend+cycle+(Math.random()-.56)*pf.vol+shock;const next=Math.max(1,Math.round(p*(1+move)*global*stockRise));stockHistory[i]=(stockHistory[i]||[p]).concat(next).slice(-100);return next});estatePrices=estatePrices.map((p,i)=>Math.max(1,Math.round(p*(1+(Math.random()-.5)*.12)*global*estateRise)));if(stockBoom){event=`주식 호황! 전체 종목이 ${Math.round((stockRise-1)*100)}% 상승했습니다.`;eventType="황금 속보"}if(estateBoom){event=`부동산 호황! 전체 부동산 시세가 ${Math.round((estateRise-1)*100)}% 상승했습니다.`;eventType="황금 속보"}}stockLastTick=now;settleEstateListings();if(event){hiddenAnnouncement(eventType||"정부 속보",event);toast(event)}save()}
+  function settleEstateListings(){const now=Date.now();estateListings.forEach((due,i)=>{if(!due||due>now)return;estateListings[i]=0;if(!estateOwned[i])return;const payout=Math.floor(estatePrices[i]*.95),before=coins;estateOwned[i]=false;coins+=payout;wealthCleaner(before);vankiaPlaced.forEach(p=>{if(p.estate===i)p.estate=-1});toast(`${ESTATES[i].name} 매각 완료: ${payout.toLocaleString()}코인`)});updateUI()}
+  let stockCategory="전체",stockOwnedOnly=false;
+  function spark(canvas,history){const c=canvas.getContext("2d"),w=canvas.width,h=canvas.height,min=Math.min(...history),max=Math.max(...history),span=Math.max(1,max-min);c.clearRect(0,0,w,h);c.strokeStyle=history.at(-1)>=history[0]?"#c62828":"#1565c0";c.lineWidth=3;c.beginPath();history.forEach((v,i)=>{const x=i/(Math.max(1,history.length-1))*(w-8)+4,y=h-5-(v-min)/span*(h-10);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}
+  function checkInvestorAchievement(){const distinct=stockOwned.filter(v=>v>0).length,profit=stockOwned.reduce((sum,n,i)=>sum+n*(stockPrices[i]-stockAverage[i]),0);if(distinct>=50&&profit>=10000000000000)grantHidden("워렌 버핏 변기","50종 이상 보유와 평가수익 10조 동시 달성")}
+  function buildStock(){marketTick();checkInvestorAchievement();stockContent.innerHTML=`<div class="marketHead">보유 코인 ${fmt(coins)} · 상시 거래 가능</div><div class="economyTabs"><button data-c="전체">전체</button><button data-c="보유">보유 주식</button>${Object.keys(STOCK_CATEGORIES).map(c=>`<button data-c="${c}">${c}</button>`).join("")}</div><div id="stockRows"></div>`;stockContent.querySelectorAll("[data-c]").forEach(b=>{const active=b.dataset.c===(stockOwnedOnly?"보유":stockCategory);b.classList.toggle("on",active);b.onclick=()=>{stockOwnedOnly=b.dataset.c==="보유";stockCategory=stockOwnedOnly?"전체":b.dataset.c;buildStock()}});const rows=stockContent.querySelector("#stockRows");STOCKS.forEach((s,i)=>{if(stockOwnedOnly&&!stockOwned[i])return;if(!stockOwnedOnly&&stockCategory!=="전체"&&s.category!==stockCategory)return;const p=stockPrices[i],old=(stockHistory[i]||[p]).at(-2)||p,profit=stockOwned[i]*(p-stockAverage[i]),row=document.createElement("div");row.className="stockRow";row.innerHTML=`<div class="stockTop"><span>${s.name}<small> · ${s.category}</small></span><span class="${p>=old?"up":"down"}">${p.toLocaleString()}</span></div><small>보유 ${stockOwned[i].toLocaleString()}주 · 평균 ${Math.round(stockAverage[i]).toLocaleString()} · 손익 ${Math.round(profit).toLocaleString()}</small><canvas class="spark" width="360" height="62"></canvas><div class="stockActions"><input type="number" min="1" value="1"><button class="buy">매수</button><button class="sell">매도</button></div>`;const input=row.querySelector("input");row.querySelector(".sell").disabled=Date.now()<stockSellLockedUntil;row.querySelector(".buy").onclick=()=>tradeStock(i,Math.floor(+input.value),true);row.querySelector(".sell").onclick=()=>tradeStock(i,Math.floor(+input.value),false);rows.appendChild(row);spark(row.querySelector("canvas"),stockHistory[i]||[p])})}
+  function tradeStock(i,count,buy){if(!Number.isFinite(count)||count<1)return toast("수량을 입력해주세요.");const p=stockPrices[i];if(buy){const cost=p*count;if(coins<cost)return toast("코인이 부족합니다.");if(!confirm(`${STOCKS[i].name} ${count}주를 ${cost.toLocaleString()}코인에 매수하시겠습니까?`))return;const old=stockOwned[i],total=stockAverage[i]*old+cost;coins-=cost;stockOwned[i]+=count;stockAverage[i]=total/stockOwned[i]}else{if(Date.now()<stockSellLockedUntil)return toast("서킷 브레이커로 매도가 정지되었습니다.");if(count>50){stockSellLockedUntil=Date.now()+300000;save();buildStock();return alert("한 번에 50주를 초과해 서킷 브레이커가 발동했습니다. 5분간 매도할 수 없습니다.")}if(stockOwned[i]<count)return toast("보유 수량이 부족합니다.");if(!confirm(`${STOCKS[i].name} ${count}주를 매도하시겠습니까?`))return;const before=coins;coins+=Math.floor(p*count*.99);stockOwned[i]-=count;if(!stockOwned[i])stockAverage[i]=0;wealthCleaner(before)}toast(buy?"매수 주문이 체결되었습니다.":"매도 주문이 체결되었습니다.");save();updateUI();buildStock()}
+  function buildEstate(){marketTick();estateContent.innerHTML=`<div class="marketHead">보유 코인 ${fmt(coins)} · 시세는 1분마다 변동</div><div class="economyNotice">판매 등록 후 1시간이 지나야 체결됩니다. 체결 시점 시세에서 중개 수수료 5%를 뺍니다.</div>`;ESTATES.forEach((e,i)=>{const row=document.createElement("div"),listed=estateListings[i]>0,left=listed?Math.max(0,Math.ceil((estateListings[i]-Date.now())/60000)):0;row.className="estateRow";row.innerHTML=`<b>${e.name}</b><br>현재 시세 ${estatePrices[i].toLocaleString()}코인<br><small>${estateOwned[i]?listed?`매물 등록됨 · 약 ${left}분 후 당시 시세로 체결`:"보유 중":"미보유"}</small><br><button>${estateOwned[i]?listed?"판매 대기 중":"판매 등록":"구매"}</button>`;const b=row.querySelector("button");b.disabled=listed;b.onclick=()=>{if(!estateOwned[i]){if(coins<estatePrices[i])return toast("코인이 부족합니다.");if(!confirm(`${e.name}을(를) ${estatePrices[i].toLocaleString()}코인에 구매하시겠습니까?`))return;coins-=estatePrices[i];estateOwned[i]=true}else{if(!confirm(`${e.name}을(를) 매물로 등록하시겠습니까?\n1시간 뒤 당시 시세로 판매되며 취소할 수 없습니다.`))return;estateListings[i]=Date.now()+3600000}save();updateUI();buildEstate()};estateContent.appendChild(row)})}
+  function buildVankia(){vankiaContent.innerHTML=`<div class="marketHead">변키아 · 부동산 전용 고급 픽셀 가구</div><select id="estateSelect">${ESTATES.map((e,i)=>`<option value="${i}" ${i===selectedEstate?"selected":""}>${e.name}${estateOwned[i]?" · 보유":" · 미보유"}</option>`).join("")}</select><div id="vankiaList"></div><h3>부동산 내부 배치</h3><div id="propertyRoom" class="propertyRoom"></div>`;vankiaContent.querySelector("#estateSelect").onchange=e=>{selectedEstate=+e.target.value;save();buildVankia()};const list=vankiaContent.querySelector("#vankiaList");VANKIA.forEach((f,i)=>{const row=document.createElement("div");row.className="vankiaRow";row.innerHTML=`<b>${f.name}</b><br>${f.price.toLocaleString()}코인<br><button>${vankiaOwned[i]?"배치하기":"구매"}</button>`;row.querySelector("button").onclick=()=>{if(!estateOwned[selectedEstate])return toast("먼저 선택한 부동산을 구매해주세요.");if(!vankiaOwned[i]){if(coins<f.price)return toast("코인이 부족합니다.");if(!confirm(`${f.name}을(를) 구매하시겠습니까?`))return;coins-=f.price;vankiaOwned[i]=true;if(vankiaOwned.every(Boolean))grantHidden("변키아 직원 변기","변키아 가구 전부 수집");save();updateUI();buildVankia()}else{if(!confirm(`${f.name}을(를) 이 부동산에 설치하시겠습니까?`))return;vankiaPlaced.push({item:i,estate:selectedEstate,x:30+Math.random()*260,y:80+Math.random()*150});save();buildVankia()}};list.appendChild(row)});renderPropertyRoom()}
+  function renderPropertyRoom(){const room=vankiaContent.querySelector("#propertyRoom");if(!room)return;if(!estateOwned[selectedEstate]){room.innerHTML="<div class='economyNotice'>이 부동산을 구매하면 내부를 꾸밀 수 있습니다.</div>";return}vankiaPlaced.forEach((p,pi)=>{if(p.estate!==selectedEstate)return;const el=document.createElement("div");el.className="placedDecor";el.textContent=VANKIA[p.item].name;el.style.left=p.x+"px";el.style.top=p.y+"px";el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);const rect=room.getBoundingClientRect();el.onpointermove=m=>{p.x=Math.max(0,Math.min(rect.width-el.offsetWidth,m.clientX-rect.left-el.offsetWidth/2));p.y=Math.max(0,Math.min(rect.height-el.offsetHeight,m.clientY-rect.top-el.offsetHeight/2));el.style.left=p.x+"px";el.style.top=p.y+"px"};el.onpointerup=()=>{el.onpointermove=null;save()}};room.appendChild(el)})}
+  economyMenu.querySelector("#stockOpen").onclick=()=>{economyMenu.classList.remove("show");buildStock();showScreen("stockMarket")};economyMenu.querySelector("#estateOpen").onclick=()=>{economyMenu.classList.remove("show");buildEstate();showScreen("realEstate")};economyMenu.querySelector("#vankiaOpen").onclick=()=>{economyMenu.classList.remove("show");buildVankia();showScreen("vankia")};
+  function settleFinance(){const now=Date.now(),hours=Math.min(168,Math.max(0,(now-financeTickAt)/3600000));if(hours>0){bankSavings+=bankSavings*.004*hours;bankLoan+=bankLoan*.16*hours;sharkLoan+=sharkLoan*.50*hours;financeTickAt=now}if(bankWithdrawal>0&&bankWithdrawalDue&&now>=bankWithdrawalDue){const before=coins;coins+=bankWithdrawal;toast(`적금 출금 완료: ${fmt(bankWithdrawal)}코인`);bankWithdrawal=0;bankWithdrawalDue=0;wealthCleaner(before)}}
+  function totalAssetValue(){return Math.max(0,coins)+bankSavings+bankWithdrawal+stockOwned.reduce((s,n,i)=>s+n*stockPrices[i],0)+estateOwned.reduce((s,v,i)=>s+(v?estatePrices[i]:0),0)}
+  function runAssetTax(){const now=Date.now();if(now-taxLastAt<7200000)return;const turns=Math.min(12,Math.floor((now-taxLastAt)/7200000));for(let i=0;i<turns;i++){const assets=totalAssetValue(),rate=assets>10000000000?.30:assets>500000000?.10:0;if(rate){const tax=Math.floor(assets*rate);coins-=tax;hiddenAnnouncement("정부 속보",`전체 자산 ${fmt(assets)}코인 기준 세금 ${fmt(tax)}코인을 냅니다.`)}}taxLastAt+=turns*7200000;save();updateUI()}
+  function buildPassbook(msg=""){settleFinance();const stockValue=stockOwned.reduce((s,n,i)=>s+n*stockPrices[i],0),estateValue=estateOwned.reduce((s,v,i)=>s+(v?estatePrices[i]:0),0),wait=bankWithdrawalDue?Math.max(0,Math.ceil((bankWithdrawalDue-Date.now())/60000)):0;bankContent.innerHTML=`<div style="border:4px double #173d76;background:#eef5ff;padding:12px"><h2 style="margin-top:0;color:#173d76">통장</h2><div class="bankPanel">적금 잔액 <b>${fmt(bankSavings)}</b><br>1시간 예상 이자 <b>${fmt(bankSavings*.004)}</b><br>주식 평가액 <b>${fmt(stockValue)}</b><br>부동산 평가액 <b>${fmt(estateValue)}</b><br>출금 대기 <b>${bankWithdrawal?`${fmt(bankWithdrawal)} · 약 ${wait}분`:"없음"}</b></div>${msg?`<div class="economyNotice">${msg}</div>`:""}<div class="bankPanel"><b>적금 입금</b><br><small>입금 수수료 1% · 출금 수수료 2% · 출금은 5분 뒤 완료</small><input id="passAmount" type="number" min="1" value="1000"><div class="bankActions"><button id="passDeposit">입금</button><button id="passWithdraw">전액 출금</button></div></div><div class="bankPanel"><b>은행 대출</b><br>남은 원금·이자 ${fmt(bankLoan)} / 최대 100,000,000<br><small>시간당 16% · 대출 중 버프 20% 감소·디버프 1.5배·크툴루 정지 · 3,000 초과 시 레어 이상 담보와 디버프 5중첩</small><input id="loanAmount" type="number" min="1" max="100000000" value="3000"><select id="collateral"><option value="">담보 선택</option>${collateralOptions().map(([c])=>`<option>${c.name}</option>`).join("")}</select><div class="bankActions"><button id="borrow">대출</button><button id="repay">상환</button></div><small>현재 담보: ${bankCollateral||"없음"}</small></div></div>`;const q=s=>bankContent.querySelector(s);q("#passDeposit").onclick=()=>{const n=Math.floor(+q("#passAmount").value);if(n<1||coins<n)return toast("입금할 코인이 부족합니다.");const fee=Math.max(1,Math.floor(n*.01));coins-=n;bankSavings+=n-fee;save();updateUI();buildPassbook(`입금 수수료 ${fee.toLocaleString()}코인을 제외하고 적립했습니다.`)};q("#passWithdraw").disabled=bankSavings<=0||bankWithdrawal>0;q("#passWithdraw").onclick=()=>{const fee=Math.max(1,Math.floor(bankSavings*.02));bankWithdrawal=Math.max(0,bankSavings-fee);bankSavings=0;bankWithdrawalDue=Date.now()+300000;save();buildPassbook(`출금 수수료 ${fee.toLocaleString()}코인 차감 · 5분 뒤 입금됩니다.`)};q("#borrow").onclick=()=>{const n=Math.floor(+q("#loanAmount").value);if(n<1||bankLoan+n>100000000)return toast("은행 대출 한도는 총 1억 코인입니다.");if(bankLoan+n>3000&&!bankCollateral){const name=q("#collateral").value,i=idx(name);if(!name||i<0||owned[i]<1)return toast("레어 이상 변기 담보를 선택해주세요.");if(!confirm(`${name} 1개를 담보로 맡기시겠습니까?`))return;owned[i]--;bankCollateral=name;uniqueRoamers()}bankLoan+=n;coins+=n;save();updateUI();buildPassbook("대출금이 지급되었습니다.")};q("#repay").onclick=()=>{const n=Math.min(bankLoan,Math.floor(+q("#loanAmount").value),Math.max(0,coins));if(n<=0)return toast("상환할 코인이 없습니다.");coins-=n;bankLoan-=n;if(bankLoan<.1){bankLoan=0;releaseCollateral()}save();updateUI();buildPassbook("대출금을 상환했습니다.")}}
+  function collateralOptions(){return characters.map((c,i)=>[c,i]).filter(([c,i])=>owned[i]>0&&["레어","에픽","레전더리","크툴루"].includes(c.rarity))}
+  function releaseCollateral(){if(!bankCollateral)return;const i=idx(bankCollateral);if(i>=0)owned[i]++;bankCollateral="";uniqueRoamers()}
+  function buildBank(msg=""){settleFinance();bankContent.innerHTML=`<div class="marketHead">보유 코인 ${fmt(coins)}</div>${msg?`<div class="economyNotice">${msg}</div>`:""}<div class="bankPanel"><b>적금</b><br>잔액 ${fmt(bankSavings)} · 시간당 이자 0.4%<input id="savingAmount" type="number" min="1" value="1000"><div class="bankActions"><button id="deposit">입금</button><button id="withdraw">전액 해지</button></div></div><div class="bankPanel"><b>은행 대출</b><br>남은 원금·이자 ${fmt(bankLoan)} / 최대 100,000,000<br><small>시간당 이자 16% · 3,000 초과 시 디버프 중첩 최대 5개 및 레어 이상 담보 필요</small><input id="loanAmount" type="number" min="1" max="100000000" value="3000"><select id="collateral"><option value="">담보 선택</option>${collateralOptions().map(([c])=>`<option>${c.name}</option>`).join("")}</select><div class="bankActions"><button id="borrow">대출</button><button id="repay">입력액 상환</button></div><small>현재 담보: ${bankCollateral||"없음"}</small></div>`;const q=s=>bankContent.querySelector(s);q("#deposit").onclick=()=>{const n=Math.floor(+q("#savingAmount").value);if(n<1||coins<n)return toast("입금할 코인이 부족합니다.");coins-=n;bankSavings+=n;save();updateUI();buildBank("적금에 입금했습니다.")};q("#withdraw").onclick=()=>{if(bankSavings<=0)return;const before=coins;coins+=bankSavings;bankSavings=0;wealthCleaner(before);save();updateUI();buildBank("적금을 전액 해지했습니다.")};q("#borrow").onclick=()=>{const n=Math.floor(+q("#loanAmount").value);if(n<1||bankLoan+n>100000000)return toast("은행 대출 한도는 총 1억 코인입니다.");if(bankLoan+n>3000&&!bankCollateral){const name=q("#collateral").value,i=idx(name);if(!name||i<0||owned[i]<1)return toast("레어 이상 변기 담보를 선택해주세요.");if(!confirm(`${name} 1개를 담보로 맡기시겠습니까?\n상환 전까지 맵과 버프에서 제외됩니다.`))return;owned[i]--;bankCollateral=name;uniqueRoamers()}bankLoan+=n;coins+=n;save();updateUI();buildBank("대출금이 지급되었습니다.")};q("#repay").onclick=()=>{const n=Math.min(bankLoan,Math.floor(+q("#loanAmount").value),Math.max(0,coins));if(n<=0)return toast("상환할 코인이 없습니다.");coins-=n;bankLoan-=n;if(bankLoan<.1){bankLoan=0;releaseCollateral()}save();updateUI();buildBank("대출금을 상환했습니다.")}}
+  function buildShark(msg=""){settleFinance();sharkContent.innerHTML=`<div class="sharkPage"><div class="debtWarning">대부업체 빚이 있으면 버프가 60% 감소하고 모든 디버프가 10배가 되며 크툴루 버프가 정지합니다.</div>${msg?`<div class="economyNotice">${msg}</div>`:""}<div class="bankPanel"><b>대부업체 대출</b><br>남은 원금·이자 ${fmt(sharkLoan)}<br><small>최소 20,000 · 최대 2,000,000,000 · 시간당 이자 50%</small><input id="sharkAmount" type="number" min="20000" max="2000000000" value="20000"><div class="bankActions"><button id="sharkBorrow">대출받기</button><button id="sharkRepay">입력액 상환</button></div></div><button id="liquidate" class="pixelAction">자산을 판매해 빚 갚기</button></div>`;const q=s=>sharkContent.querySelector(s);q("#sharkBorrow").onclick=()=>{const n=Math.floor(+q("#sharkAmount").value);if(n<20000||sharkLoan+n>2000000000)return toast("대출은 최소 20,000, 총 20억 이하입니다.");if(!confirm(`대부업체에서 ${n.toLocaleString()}코인을 빌리시겠습니까?\n고금리와 강한 디버프가 즉시 적용됩니다.`))return;sharkLoan+=n;coins+=n;hiddenAnnouncement("크툴루의 실망","대부업체 빚을 모두 갚을 때까지 크툴루 버프가 정지합니다.");save();updateUI();buildShark("대출금이 지급되었습니다.")};q("#sharkRepay").onclick=()=>{const n=Math.min(sharkLoan,Math.floor(+q("#sharkAmount").value),Math.max(0,coins));if(n<=0)return toast("상환할 코인이 없습니다.");coins-=n;sharkLoan-=n;if(sharkLoan<.1)sharkLoan=0;save();updateUI();buildShark("상환했습니다.")};q("#liquidate").onclick=liquidateDebt}
+  function liquidateDebt(){settleFinance();const debt=bankLoan+sharkLoan;if(debt<=0)return toast("갚을 빚이 없습니다.");hiddenAnnouncement("자산 강제 판매 예고","빚을 갚기 위해 보유 변기와 자산 판매가 필요합니다.");if(!confirm("빚을 갚기 위해 보유 변기를 판매하시겠습니까?\n예를 누르면 필요한 만큼만 판매합니다."))return;let raised=0;for(const rarity of RARITIES){for(let i=1;i<characters.length&&raised<debt;i++){const c=characters[i];if(c.rarity!==rarity||owned[i]<1)continue;while(owned[i]>0&&raised<debt){owned[i]--;raised+=SELL_PRICE[rarity]||0}}}for(let i=0;i<stockOwned.length&&raised<debt;i++){raised+=stockOwned[i]*stockPrices[i];stockOwned[i]=0;stockAverage[i]=0}for(let i=0;i<estateOwned.length&&raised<debt;i++){if(estateOwned[i]){raised+=Math.floor(estatePrices[i]*.95);estateOwned[i]=false;estateListings[i]=0}}for(let i=0;i<purchasedFurniture.length&&raised<debt;i++){if(purchasedFurniture[i]){raised+=Math.floor(furnitureCatalog[i].price*.2);purchasedFurniture[i]=false}}for(let i=0;i<vankiaOwned.length&&raised<debt;i++){if(vankiaOwned[i]){raised+=Math.floor(VANKIA[i].price*.2);vankiaOwned[i]=false}}let pay=Math.min(raised,sharkLoan);sharkLoan-=pay;raised-=pay;pay=Math.min(raised,bankLoan);bankLoan-=pay;raised-=pay;if(bankLoan<=0){bankLoan=0;releaseCollateral()}coins+=raised;uniqueRoamers();save();updateUI();buildShark("자산 판매와 빚 상환이 완료되었습니다.")}
+  economyMenu.querySelector("#bankOpen").onclick=()=>{economyMenu.classList.remove("show");buildPassbook();showScreen("bank")};economyMenu.querySelector("#sharkOpen").onclick=openSharkWarning;
+  setInterval(()=>marketTick(),60000);
+  setInterval(()=>{settleFinance();runAssetTax();save()},60000);
+
+  let raceEntrants=[],racePick=0,raceRunning=false,raceAnimation=0;
+  function randomEntrants(){const pool=characters.map((_,i)=>i),out=[];while(out.length<5&&pool.length){const p=Math.floor(Math.random()*pool.length);out.push(pool.splice(p,1)[0])}return out}
+  function buildRace(){if(!raceEntrants.length&&!raceRunning)raceEntrants=randomEntrants();raceContent.innerHTML=`<div class="miniCurrency">경마칩 ${raceChips.toLocaleString()}개 · 우승칩 ${victoryChips.toLocaleString()}개 · 연속 적중 ${raceStreak}/5</div><div class="raceCards"></div><div class="miniPanel"><b>베팅할 경마칩</b><br><input id="raceBet" type="number" min="1" step="1" value="1"> <button id="raceStart" class="pixelAction">경주 시작</button><br><small>적중 시 베팅액 ×4와 우승칩 7개 지급 · 출전 변기는 매 경기 무작위 선정</small></div><canvas id="raceCanvas" width="430" height="330"></canvas><div id="raceMessage">우승할 변기를 선택하세요.</div><button id="raceReroll" class="pixelAction">출전 명단 다시 뽑기</button>`;
+    const cards=raceContent.querySelector(".raceCards");raceEntrants.forEach((ci,n)=>{const b=document.createElement("button");b.className="raceCard"+(n===racePick?" on":"");b.textContent=`${n+1}번\n${characters[ci].name}`;b.onclick=()=>{if(raceRunning)return;racePick=n;buildRace()};cards.appendChild(b)});
+    raceContent.querySelector("#raceReroll").onclick=()=>{if(raceRunning)return;raceEntrants=randomEntrants();racePick=0;buildRace()};
+    raceContent.querySelector("#raceStart").onclick=()=>{const bet=Math.floor(+raceContent.querySelector("#raceBet").value);if(raceRunning)return;if(!Number.isFinite(bet)||bet<1)return toast("베팅할 칩을 입력해주세요.");if(raceChips<bet)return toast("경마칩이 부족합니다.");raceChips-=bet;save();startRace(bet)};drawRaceTrack(new Array(5).fill(0),"READY")
+  }
+  function drawRaceTrack(progress,label){const cv=raceContent.querySelector("#raceCanvas");if(!cv)return;const c=cv.getContext("2d"),w=cv.width;c.clearRect(0,0,w,cv.height);c.fillStyle="#d9bd83";c.fillRect(0,0,w,cv.height);c.fillStyle="#fff";c.fillRect(42,20,4,285);c.fillRect(w-27,20,6,285);c.fillStyle="#111";c.font="bold 10px monospace";c.fillText("START",8,16);c.fillText("GOAL",w-58,16);for(let lane=0;lane<5;lane++){const y=38+lane*57;c.fillStyle=lane%2?"#cda96b":"#e2c995";c.fillRect(0,y-9,w,51);c.strokeStyle="#fff";c.setLineDash([9,7]);c.beginPath();c.moveTo(0,y+42);c.lineTo(w,y+42);c.stroke();c.setLineDash([]);c.fillStyle="#111";c.font="bold 12px monospace";c.fillText(String(lane+1),13,y+21);const x=48+Math.max(0,Math.min(1,progress[lane]))*(w-139);c.save();c.translate(x,y-2);c.scale(.48,.48);drawCharacter(c,characters[raceEntrants[lane]],0,0);c.restore();if(progress[lane]>.03){c.fillStyle="rgba(100,75,45,.6)";for(let d=0;d<3;d++)c.fillRect(x-8-d*7,y+31+(d%2)*3,3,3)}}c.fillStyle="#111";c.font="bold 17px monospace";c.textAlign="center";c.fillText(label,w/2,322);c.textAlign="start"}
+  function startRace(bet){raceRunning=true;const start=performance.now(),duration=9000+Math.random()*6000,finish=raceEntrants.map(()=>.96+Math.random()*.035),phase=raceEntrants.map(()=>Math.random()*6.28);let countdown=3,lastSecond=3;const msg=raceContent.querySelector("#raceMessage"),startBtn=raceContent.querySelector("#raceStart"),reroll=raceContent.querySelector("#raceReroll");startBtn.disabled=true;reroll.disabled=true;raceContent.querySelectorAll(".raceCard").forEach(b=>b.disabled=true);
+    function frame(now){const elapsed=now-start;if(elapsed<3000){const sec=Math.ceil((3000-elapsed)/1000);if(sec!==lastSecond)lastSecond=sec;drawRaceTrack(new Array(5).fill(0),sec>0?String(sec):"출발!");msg.textContent=`${sec>0?sec:"출발"}...`;raceAnimation=requestAnimationFrame(frame);return}const t=Math.min(1,(elapsed-3000)/duration),late=t>.8?(t-.8)*2.8:0,waveFade=Math.max(0,1-t);const p=finish.map((f,i)=>Math.max(0,Math.min(1,t*f+(Math.sin(t*18+phase[i])*.035+Math.sin(t*43+i)*(.012+late*.018))*waveFade)));const leader=p.indexOf(Math.max(...p));drawRaceTrack(p,`선두: ${leader+1}번`);if(t<1){raceAnimation=requestAnimationFrame(frame);return}const winner=p.indexOf(Math.max(...p));const hit=winner===racePick;if(hit){const prize=bet*4;raceChips+=prize;victoryChips+=7;raceStreak++;msg.textContent=`${winner+1}번 ${characters[raceEntrants[winner]].name} 우승! 적중! +${prize} 경마칩 / +7 우승칩`;if(raceStreak>=5)grantHidden("경마 변기","변기 경마 5경기 연속 적중")}else{raceStreak=0;msg.textContent=`${winner+1}번 ${characters[raceEntrants[winner]].name} 우승! 실패! -${bet} 경마칩`}raceRunning=false;save();evaluateHidden();setTimeout(()=>{raceEntrants=randomEntrants();racePick=0;buildRace()},2600)}raceAnimation=requestAnimationFrame(frame)
+  }
+  raceButton.onclick=()=>{closeMiniMenu();buildRace();showScreen("race")};
+
+  function drawChipIcon(c,x,y,gold=false){c.fillStyle="#111";c.beginPath();c.arc(x,y,34,0,Math.PI*2);c.fill();c.fillStyle=gold?"#f3c62f":"#bf6e32";c.beginPath();c.arc(x,y,29,0,Math.PI*2);c.fill();c.strokeStyle=gold?"#fff0a0":"#f0b978";c.lineWidth=4;c.beginPath();c.arc(x,y,20,0,Math.PI*2);c.stroke();c.fillStyle="#111";if(gold){c.fillRect(x-13,y-9,26,17);c.fillRect(x-9,y+8,18,6);c.fillStyle="#f3c62f";c.fillRect(x-8,y-5,5,7);c.fillRect(x+3,y-5,5,7)}else{c.lineWidth=5;c.beginPath();c.arc(x,y-2,11,.15,Math.PI-.15);c.stroke();c.fillRect(x-13,y+5,5,13);c.fillRect(x+8,y+5,5,13)}}
+  function buildExchange(message=""){exchangeContent.innerHTML=`<div class="miniCurrency">본게임 코인 ${fmt(coins)} · 경마칩 ${raceChips.toLocaleString()} · 우승칩 ${victoryChips.toLocaleString()}</div><canvas id="exchangeCanvas" width="430" height="145"></canvas><div class="miniPanel"><b>경마칩 구매</b><br><small>본게임 200코인 → 경마칩 1개</small><br><input id="coinToChip" type="number" min="200" step="200" value="2000"> <button id="buyRaceChip" class="pixelAction">환전</button></div><div class="miniPanel"><b>본게임 코인으로 역환전</b><br><small>경마칩 1개 → 180코인 (수수료 10%)</small><br><input id="chipToCoin" type="number" min="1" step="1" value="1"> <button id="sellRaceChip" class="pixelAction">역환전</button></div><div class="miniPanel"><b>우승칩 뽑기권 추첨</b><br><small>우승칩 7개 사용 · 레어 85% / 에픽 14.9% / 레전더리 0.1%</small><br><button id="ticketLottery" class="pixelAction">뽑기권 추첨</button></div><div id="exchangeMessage">${message}</div>`;const cv=exchangeContent.querySelector("#exchangeCanvas"),c=cv.getContext("2d");c.fillStyle="#eee3c7";c.fillRect(0,0,430,145);drawChipIcon(c,115,66,false);drawChipIcon(c,315,66,true);c.fillStyle="#111";c.font="bold 12px monospace";c.textAlign="center";c.fillText("경마칩",115,122);c.fillText("우승칩",315,122);c.textAlign="start";
+    exchangeContent.querySelector("#buyRaceChip").onclick=()=>{const amount=Math.floor(+exchangeContent.querySelector("#coinToChip").value/200)*200;if(amount<200)return toast("200코인 이상 입력해주세요.");if(coins<amount)return toast("본게임 코인이 부족합니다.");coins-=amount;raceChips+=amount/200;save();updateUI();buildExchange(`경마칩 ${amount/200}개를 받았습니다.`)};
+    exchangeContent.querySelector("#sellRaceChip").onclick=()=>{const amount=Math.floor(+exchangeContent.querySelector("#chipToCoin").value);if(!Number.isFinite(amount)||amount<1)return toast("경마칩 수량을 입력해주세요.");if(raceChips<amount)return toast("경마칩이 부족합니다.");if(!confirm(`경마칩 ${amount}개를 ${(amount*180).toLocaleString()}코인으로 바꾸시겠습니까?\n수수료 10%가 적용됩니다.`))return;raceChips-=amount;const before=coins;coins+=amount*180;wealthCleaner(before);save();updateUI();buildExchange(`${(amount*180).toLocaleString()}코인을 받았습니다.`)};
+    exchangeContent.querySelector("#ticketLottery").onclick=()=>{if(victoryChips<7)return toast("우승칩 7개가 필요합니다.");victoryChips-=7;const r=Math.random()*100,grade=r<.1?"레전더리":r<15?"에픽":"레어";gachaTickets[grade]++;save();buildExchange(`${grade} 뽑기권을 획득했습니다.`)}
+  }
+  exchangeButton.onclick=()=>{closeMiniMenu();buildExchange();showScreen("exchange")};
+
+  const FORGE_FORMS=["양변기","은색 변기","네온 변기","얼음 변기","전기 변기","황금 양변기","로봇 변기","용암 변기","블랙홀 변기","천사 변기","오디세우스 변기","토르 변기","오딘 변기","태양신 라 변기","시바신 변기","아자토스 변기","해파이스토스 변기"];
+  function forgeChance(){return forgeLevel>=16?0:95-forgeLevel*5}
+  function buildForge(message=""){const form=FORGE_FORMS[forgeLevel],ci=idx(form),displayLevel=Math.min(16,forgeLevel+1);forgeContent.innerHTML=`<div class="miniCurrency">경마칩 ${raceChips.toLocaleString()}개 · 보호권 ${forgeGuards.toLocaleString()}장</div><div class="miniPanel"><b>강화 단계 ${displayLevel} / 16</b><br>${forgeLevel>=16?"최종 강화 완료":`다음 성공 확률 ${forgeChance()}% · 1회당 경마칩 1개`}<br><small>실패하면 1단계로 돌아갑니다. 보호권이 있으면 1장 사용하고 현재 단계를 유지합니다.</small></div><div class="miniPanel"><b>강화 보호권</b><br>가격 10,000코인 · 보유 ${forgeGuards.toLocaleString()}장<br><button id="buyForgeGuard" class="pixelAction">보호권 구매</button></div><canvas id="forgeCanvas" width="430" height="245"></canvas><div id="forgeMessage">${message||`${form} 외형`}</div><button id="forgeTry" class="pixelAction" ${forgeLevel>=16?"disabled":""}>경마칩 1개로 강화하기</button>`;const cv=forgeContent.querySelector("#forgeCanvas"),c=cv.getContext("2d");c.fillStyle="#202337";c.fillRect(0,0,430,245);c.fillStyle="#efd165";for(let i=0;i<14;i++)c.fillRect((i*71)%430,(i*47)%220,3,3);c.fillStyle="#606783";c.fillRect(105,190,220,30);c.fillStyle="#a8b5d5";c.fillRect(135,170,160,22);if(ci>=0){c.save();c.translate(165,58);c.scale(1.45,1.45);drawCharacter(c,characters[ci],0,0);c.restore()}c.fillStyle="#fff";c.font="bold 14px monospace";c.textAlign="center";c.fillText(form,215,28);c.textAlign="start";forgeContent.querySelector("#buyForgeGuard").onclick=()=>{if(coins<10000)return toast("10,000코인이 필요합니다.");if(!confirm("10,000코인으로 강화 보호권 1장을 구매하시겠습니까?"))return;coins-=10000;forgeGuards++;save();updateUI();buildForge("강화 보호권을 구매했습니다.")};forgeContent.querySelector("#forgeTry").onclick=tryForge}
+  function tryForge(){if(forgeLevel>=16)return;if(raceChips<1)return toast("경마칩이 부족합니다.");raceChips--;const chance=forgeChance(),success=Math.random()*100<chance;if(success){forgeLevel++;if(forgeLevel>=16){grantHidden("해파이스토스 변기","변기 강화 최종 20% 단계 성공");buildForge("최종 강화 성공! 해파이스토스 변기를 획득했습니다!")}else buildForge(`강화 성공! ${FORGE_FORMS[forgeLevel]} 외형으로 변화`)}else if(forgeGuards>0){forgeGuards--;buildForge(`강화 실패! 보호권 1장을 사용해 ${Math.min(16,forgeLevel+1)}단계를 유지했습니다.`)}else{forgeLevel=0;buildForge(`강화 실패! 1단계 ${FORGE_FORMS[0]} 외형으로 돌아갔습니다.`)}save();evaluateHidden()}
+  forgeButton.onclick=()=>{closeMiniMenu();buildForge();showScreen("forge")};
+
+  const RPS_TYPES=["가위","바위","보"];let rpsReady=false,rpsBusy=false;
+  function rpsRect(c,x,y,w,h,color){c.fillStyle="#111";c.fillRect(x-2,y-2,w+4,h+4);c.fillStyle=color;c.fillRect(x,y,w,h)}
+  function drawRpsCard(canvas,type,back=false){const c=canvas.getContext("2d"),w=90,h=120;c.clearRect(0,0,w,h);c.imageSmoothingEnabled=false;rpsRect(c,3,3,84,114,back?"#364f7c":"#f9f5e9");if(back){c.fillStyle="#85b7dc";for(let yy=13;yy<108;yy+=14)for(let xx=13;xx<78;xx+=14)if((xx+yy)%28)c.fillRect(xx,yy,7,7);rpsRect(c,30,42,30,36,"#e6ca48");c.fillStyle="#111";c.fillRect(42,50,6,21);c.fillRect(36,56,18,7);return}c.fillStyle="#111";c.font="bold 11px monospace";c.textAlign="center";c.fillText(type,45,108);c.textAlign="start";const skin="#f1c49a";if(type==="바위"){rpsRect(c,22,36,48,43,skin);rpsRect(c,27,27,13,20,skin);rpsRect(c,41,23,13,22,skin);rpsRect(c,55,28,12,20,skin);c.fillStyle="#d38f68";c.fillRect(28,52,34,5)}else if(type==="보"){rpsRect(c,30,49,32,39,skin);for(let i=0;i<4;i++)rpsRect(c,20+i*14,19-(i%2)*3,11,39,skin);rpsRect(c,18,53,16,13,skin)}else{rpsRect(c,34,57,27,31,skin);rpsRect(c,29,24,11,42,skin);rpsRect(c,49,18,11,47,skin);c.fillStyle="#d38f68";c.fillRect(39,57,5,24)}c.strokeStyle="#fff";c.lineWidth=3;c.strokeRect(7,7,76,95)}
+  function makeRpsCard(type,computer=false,index=0){const b=document.createElement("button");b.className="rpsCard";b.disabled=true;const cv=document.createElement("canvas");cv.width=90;cv.height=120;b.appendChild(cv);const s=document.createElement("span");s.textContent=computer?"비공개":type;b.appendChild(s);drawRpsCard(cv,type,computer);if(!computer)b.onclick=()=>chooseRps(index);return b}
+  function renderRpsCards(){const p=rpsContent.querySelector("#rpsPlayer"),c=rpsContent.querySelector("#rpsComputer");if(!p||!c)return;p.innerHTML="";c.innerHTML="";RPS_TYPES.forEach((t,i)=>{const pc=makeRpsCard(t,false,i);if(rpsReady){pc.disabled=false;pc.classList.add("ready")}p.appendChild(pc);c.appendChild(makeRpsCard(t,true,i))})}
+  function buildRps(){rpsReady=false;rpsBusy=false;rpsContent.innerHTML=`<div class="miniCurrency">경마칩 ${raceChips.toLocaleString()}개 · 가위바위보 우승 게임머니 ${rpsWinMoney.toLocaleString()}개</div><div class="miniPanel"><b>컴퓨터 카드</b><div id="rpsComputer" class="rpsCards"></div><div id="rpsMessage">게임 시작을 눌러주세요.</div><b>내 카드</b><div id="rpsPlayer" class="rpsCards"></div></div><button id="rpsStart" class="pixelAction">경마칩 1개로 게임 시작</button><div class="miniPanel"><small>이기는 패를 내도 35% 확률로 빗나갑니다. 최종 승리 시 우승 게임머니 1개를 받습니다.</small></div>`;renderRpsCards();rpsContent.querySelector("#rpsStart").onclick=startRps}
+  const rpsWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  async function startRps(){if(rpsBusy)return;if(raceChips<1)return toast("경마칩 1개가 필요합니다.");raceChips--;save();rpsBusy=true;rpsReady=false;const startBtn=rpsContent.querySelector("#rpsStart"),msg=rpsContent.querySelector("#rpsMessage");startBtn.disabled=true;renderRpsCards();for(const text of ["안 내면 진다","가위","바위","보"]){msg.textContent=text;await rpsWait(text==="안 내면 진다"?900:600)}rpsBusy=false;rpsReady=true;msg.textContent="지금 카드를 고르세요!";renderRpsCards()}
+  function rpsLogical(p,c){if(p===c)return"draw";return(p===0&&c===2)||(p===1&&c===0)||(p===2&&c===1)?"win":"lose"}
+  function chooseRps(pick){if(!rpsReady||rpsBusy)return;rpsReady=false;rpsBusy=true;const cpu=Math.floor(Math.random()*3),playerCards=[...rpsContent.querySelector("#rpsPlayer").children],computerCards=[...rpsContent.querySelector("#rpsComputer").children];playerCards.forEach((b,i)=>{b.disabled=true;b.classList.remove("ready");if(i===pick)b.classList.add("selected")});const chosen=computerCards[cpu];drawRpsCard(chosen.querySelector("canvas"),RPS_TYPES[cpu],false);chosen.querySelector("span").textContent=RPS_TYPES[cpu];chosen.classList.add("reveal");const logical=rpsLogical(pick,cpu),miss=logical==="win"&&Math.random()<.35;let title,detail;if(miss){title="빗나감";detail="이기는 패였지만 빗나갔습니다."}else if(logical==="win"){title="이김";detail="우승 게임머니 1개 획득";rpsWinMoney++}else if(logical==="lose"){title="패배";detail="컴퓨터가 이겼습니다."}else{title="무승부";detail="같은 카드를 냈습니다."}const msg=rpsContent.querySelector("#rpsMessage");msg.innerHTML=`<div style="font-size:32px">${title}</div><small>나: ${RPS_TYPES[pick]} / 컴퓨터: ${RPS_TYPES[cpu]}<br>${detail}</small>`;save();setTimeout(()=>{rpsBusy=false;const b=rpsContent.querySelector("#rpsStart");if(b){b.disabled=false;b.textContent="경마칩 1개로 다시 하기"}},650)}
+  rpsButton.onclick=()=>{closeMiniMenu();buildRps();showScreen("rps")};
+  let bjDeck=[],bjPlayer=[],bjDealer=[],bjBet=0,bjPlaying=false,bjTarget=19,bjTheme="고전 카지노";
+  function bjValue(hand){let n=0,a=0;hand.forEach(c=>{if(c.r==="A"){n+=11;a++}else n+=["J","Q","K"].includes(c.r)?10:+c.r});while(n>21&&a){n-=10;a--}return n}
+  function bjNewDeck(){const d=[];["S","H","D","C"].forEach(s=>["A","2","3","4","5","6","7","8","9","10","J","Q","K"].forEach(r=>d.push({s,r})));for(let i=d.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
+  function bjCard(c,hidden=false){return `<div class="bjCard${hidden?" back":["H","D"].includes(c.s)?" red":""}">${hidden?"":`<span>${c.r}<br>${c.s}</span>`}</div>`}
+  function buildBlackjack(msg="배팅하고 시작하세요."){const themes={"고전 카지노":"#1e6647","황금 카지노":"#80620d","심연 카지노":"#241438"};blackjackContent.innerHTML=`<div style="background:${themes[bjTheme]};padding:10px;border:4px solid #111"><div class="miniCurrency">경마칩 ${raceChips.toLocaleString()}개 · 현재 배팅 ${bjBet.toLocaleString()}칩 · 연승 ${blackjackStreak}/7</div><select id="bjTheme"><option>고전 카지노</option><option>황금 카지노</option><option>심연 카지노</option></select><div class="miniPanel"><b>딜러 · 합계 ${bjPlaying?"?":bjDealer.length?bjValue(bjDealer):"?"}</b><div class="bjCards">${bjDealer.length?bjDealer.map(c=>bjCard(c,bjPlaying)).join(""):"<span class='bjEmpty'>배팅하면 딜러 카드가 나옵니다.</span>"}</div></div><div class="miniPanel"><b>플레이어 · 합계 ${bjValue(bjPlayer)}</b><div class="bjCards">${bjPlayer.length?bjPlayer.map(c=>bjCard(c)).join(""):"<span class='bjEmpty'>배팅하면 플레이어 카드가 나옵니다.</span>"}</div></div><div class="economyNotice">${msg}</div><div class="miniPanel"><input id="bjAmount" type="number" min="2" value="2"> <button id="bjStart" class="pixelAction">배팅하고 시작</button><button id="bjRaise" class="pixelAction">추가 배팅</button></div><div class="assetGrid"><button id="bjHit" class="pixelAction">카드 뽑기</button><button id="bjShow" class="pixelAction">승부 보기</button><button id="bjFold" class="pixelAction">다이</button></div></div>`;const q=s=>blackjackContent.querySelector(s),amount=()=>Math.floor(+q("#bjAmount").value);q("#bjTheme").value=bjTheme;q("#bjTheme").onchange=e=>{bjTheme=e.target.value;buildBlackjack(msg)};q("#bjStart").disabled=bjPlaying;q("#bjRaise").disabled=!bjPlaying;q("#bjHit").disabled=!bjPlaying||bjValue(bjPlayer)>=21;q("#bjShow").disabled=!bjPlaying;q("#bjFold").disabled=!bjPlaying;
+    q("#bjStart").onclick=()=>{const n=amount();if(n<2)return toast("최소 배팅은 경마칩 2개입니다.");if(raceChips<n)return toast("경마칩이 부족합니다.");raceChips-=n;bjBet=n;bjDeck=bjNewDeck();const opening=()=>{if(Math.random()>.6)return bjDeck.pop();const picks=bjDeck.map((c,i)=>[c,i]).filter(([c])=>+c.r>=2&&+c.r<=8);if(!picks.length)return bjDeck.pop();return bjDeck.splice(picks[Math.floor(Math.random()*picks.length)][1],1)[0]};bjPlayer=[opening(),opening()];bjDealer=[bjDeck.pop(),bjDeck.pop()];bjTarget=Math.random()<.5?19:20;bjPlaying=true;save();buildBlackjack("플레이어 차례입니다.")};
+    q("#bjRaise").onclick=()=>{const n=amount();if(n<2)return toast("추가 배팅도 최소 경마칩 2개입니다.");if(raceChips<n)return toast("경마칩이 부족합니다.");raceChips-=n;bjBet+=n;save();buildBlackjack("추가 배팅 완료. 건 금액은 줄이거나 회수할 수 없습니다.")};
+    q("#bjHit").onclick=()=>{bjPlayer.push(bjDeck.pop());buildBlackjack("딜러가 비공개로 행동합니다.");setTimeout(()=>{if(bjValue(bjDealer)<bjTarget)bjDealer.push(bjDeck.pop());buildBlackjack(bjValue(bjPlayer)>=21?"승부 보기를 눌러 결과를 확인하세요.":"다시 플레이어 차례입니다.")},450)};
+    q("#bjShow").onclick=()=>bjFinish();q("#bjFold").onclick=()=>bjFinish(true)}
+  function bjFinish(fold=false){const p=bjValue(bjPlayer),d=bjValue(bjDealer);let result;if(fold)result="패배";else if(p>21&&d>21)result="무승부";else if(p>21)result="패배";else if(d>21)result="승리";else result=p>d?"승리":p<d?"패배":"무승부";if(result==="승리"){raceChips+=bjBet*2;blackjackStreak++;if(blackjackStreak>=7)grantHidden("도신 변기","블랙잭 7연승 달성")}else if(result==="무승부")raceChips+=bjBet;else blackjackStreak=0;bjPlaying=false;bjBet=0;save();updateUI();buildBlackjack(`${result} · 딜러 ${d} / 플레이어 ${p}`)}
+  blackjackButton.onclick=()=>{closeMiniMenu();buildBlackjack();showScreen("blackjack")};
+  const COUPONS={"변기키우기갓겜":{text:"토끼공듀 변기",use(){const i=idx("토끼공듀 변기");owned[i]++;discovered[i]=true;hiddenAnnouncement("쿠폰 보상","토끼공듀 변기 획득")}},"COIN-100K":{text:"100,000코인",use(){coins+=100000}},"RACE-10":{text:"경마칩 10개",use(){raceChips+=10}},"WINNER-7":{text:"우승칩 7개",use(){victoryChips+=7}},"PLUNGER-5":{text:"뚜러뻥 5개",use(){plungers+=5}},"MOP-ONE":{text:"대걸레 1개",use(){mops++}},"RARE-TICKET":{text:"레어 뽑기권",use(){gachaTickets.레어++}},"EPIC-TICKET":{text:"에픽 뽑기권",use(){gachaTickets.에픽++}},"LEGEND-LUCK":{text:"레전더리 뽑기권",use(){gachaTickets.레전더리++}},"FORGE-GUARD":{text:"강화 보호권",use(){forgeGuards++}},"CHIP-50":{text:"경마칩 50개",use(){raceChips+=50}},"COIN-MILLION":{text:"1,000,000코인",use(){coins+=1000000}},"PLUNGER-20":{text:"뚜러뻥 20개",use(){plungers+=20}},"RACE-100":{text:"경마칩 100개",use(){raceChips+=100}},"PIXEL-GIFT":{text:"500,000코인",use(){coins+=500000}}};
+  function buildCoupon(msg="15개의 공식 쿠폰을 입력할 수 있습니다."){couponContent.innerHTML=`<div class="miniPanel"><b>쿠폰 코드</b><br><input id="couponCode" maxlength="30" autocomplete="off" style="width:100%;margin:8px 0;text-transform:uppercase"><button id="couponUse" class="pixelAction">사용</button></div><div class="economyNotice">${msg}</div><small>사용한 쿠폰은 이 저장 데이터에서 다시 사용할 수 없습니다.</small>`;couponContent.querySelector("#couponUse").onclick=()=>{const code=couponContent.querySelector("#couponCode").value.trim().toUpperCase(),gift=COUPONS[code];if(!gift)return buildCoupon("존재하지 않는 쿠폰입니다.");if(usedCoupons.includes(code))return buildCoupon("이미 사용한 쿠폰입니다.");gift.use();usedCoupons.push(code);uniqueRoamers();save();updateUI();buildCoupon(gift.text+" 지급 완료")}}
+  couponButton.onclick=()=>{closeMiniMenu();buildCoupon();showScreen("coupon")};
+  bgBtn.onclick=()=>{buildBackground();showScreen("background")};itemBtn.onclick=()=>{buildItems();showScreen("items")};
+  function buildBackground(){bgContent.innerHTML="";[["기본",0],["황금",30],["다이아",50],["우주",100],["절",500000],["카지노",750000],["심해",1000000],["도시",1500000]].forEach(([n,p])=>{const row=document.createElement("div");row.className="shopRow";const b=document.createElement("button");b.textContent=currentBackground===n?"사용 중":unlockedBackgrounds[n]?"장착":`${p.toLocaleString()}코인 구매`;b.onclick=()=>{if(!unlockedBackgrounds[n]){if(coins<p)return toast("코인이 부족합니다.");coins-=p;unlockedBackgrounds[n]=true}currentBackground=n;save();updateUI();buildBackground()};row.innerHTML=`<div><b>${n} 배경</b><br><small>${n==="절"?"기와·석등·연꽃이 있는 픽셀 사찰":"능력치 없는 꾸미기 요소"}</small></div>`;row.appendChild(b);bgContent.appendChild(row)})}
+  function buildItems(){itemContent.innerHTML=`<div class="shopRow"><div><b>뚜러뻥</b><br>보유 ${plungers}개 / 가격 300<br><small>사용하기를 누른 뒤 맵의 변기를 선택</small></div><div><button id="buyP">구매</button> <button id="useP">사용하기</button></div></div><div class="shopRow"><div><b>대걸레</b><br>보유 ${mops}개 / 가격 100,000,000<br><small>변기 막힘 자동 방어</small></div><button id="buyM">구매</button></div><div class="shopRow"><div><b>옷장</b><br>${wardrobe?"구매 완료":"가격 100"}</div><button id="buyW">${wardrobe?"스킨 선택":"구매"}</button></div>`;
+    const rehab=document.createElement("div");rehab.className="shopRow";rehab.innerHTML=`<div><b>개인회생권</b><br>가격 100,000,000 · 보유 ${rehabTickets}<br><small>은행·대부업체 빚 정리 / 사용 ${rehabUses}/2</small></div><div><button id="buyRehab" ${rehabUses>=2?"disabled":""}>${rehabUses>=2?"판매 종료":"구매"}</button> <button id="useRehab" ${rehabTickets<1?"disabled":""}>사용</button></div>`;itemContent.appendChild(rehab);rehab.querySelector("#buyRehab").onclick=()=>{if(rehabUses>=2)return;if(coins<100000000)return toast("1억 코인이 필요합니다.");if(!confirm("개인회생권을 1억 코인에 구매하시겠습니까?"))return;coins-=100000000;rehabTickets++;save();updateUI();buildItems()};rehab.querySelector("#useRehab").onclick=()=>{if(rehabTickets<1||rehabUses>=2)return;if(bankLoan+sharkLoan<=0)return toast("정리할 빚이 없습니다.");if(!confirm("개인회생권을 사용해 은행과 대부업체 빚을 모두 정리하시겠습니까?"))return;rehabTickets--;rehabUses++;bankLoan=0;sharkLoan=0;releaseCollateral();save();updateUI();buildItems()};
+    itemContent.querySelector("#buyP").onclick=()=>buyItem(300,()=>plungers++,"뚜러뻥");itemContent.querySelector("#useP").onclick=()=>{if(plungers<1)return toast("뚜러뻥이 없습니다.");plungerMode=true;showScreen("main");toast("제거할 변기를 눌러주세요.")};itemContent.querySelector("#buyM").onclick=()=>buyItem(100000000,()=>mops++,"대걸레");itemContent.querySelector("#buyW").onclick=()=>{if(!wardrobe){if(coins<100)return toast("코인이 부족합니다.");coins-=100;wardrobe=true;placedFurniture.push({type:"wardrobe",x:375,y:175});save();updateUI()}buildSkinPicker()};}
+  function buyItem(price,fn,name){if(coins<price)return toast("코인이 부족합니다.");coins-=price;fn();save();updateUI();toast(name+" 구매 완료");buildItems()}
+  function usePlunger(i,confirmed=false){if(plungers<1)return toast("뚜러뻥이 없습니다.");if(!confirmed&&!confirm(`${characters[i].name}에게 뚜러뻥을 사용하시겠습니까?`))return;plungers--;owned[i]--;uniqueRoamers();save();updateUI()}
+  function buildSkinPicker(){if(!wardrobe)return;itemContent.innerHTML="<h3>주인공 스킨 선택</h3>";characters.forEach((c,i)=>{if(i!==0&&owned[i]<1)return;const b=document.createElement("button");b.className="pixelAction";b.style.margin="4px";b.textContent=(currentSkin===c.name?"✓ ":"")+c.name;b.onclick=()=>{currentSkin=c.name;save();toast(c.name+" 스킨 장착");buildItems()};itemContent.appendChild(b)})}
+  openPlungerConfirm=roamingIndex=>{if(!plungerMode)return;const roaming=roamingCharacters[roamingIndex];if(!roaming)return;const i=roaming.characterIndex;if(i===0)return toast("기본 양변기는 제거할 수 없습니다.");if(!confirm(`${characters[i].name}에게 뚜러뻥을 사용하시겠습니까?`))return;plungerMode=false;usePlunger(i,true)};
+
+  const earn=cloneButton("earnButton");let earnReady=true;earn.onclick=()=>{if(!earnReady)return;earnReady=false;const before=coins;let gain=calculateIncome();if(has("칼립소 변기")&&Math.random()<Math.min(.36,.12*stacks("칼립소 변기")))gain*=10;if(has("로키 변기")&&Math.random()<Math.min(.24,.08*stacks("로키 변기")))gain*=20;characters.forEach((c,i)=>{const p=(BUFFS[c.name]||{}).proc,count=Math.min(3,owned[i]||0);if(count&&p&&Math.random()*100<p[0]*count)gain*=p[1]});if(has("도박꾼 변기")){const r=Math.random();if(r<.05)gain*=10;else if(r<.10)gain=0}coins+=gain;totalEarned+=Math.max(0,gain);wealthCleaner(before);
+    if(Math.random()<.0009){if(mops>0){mops--;toast("대걸레로 변기 막힘을 막았습니다!")}else{const loss=coins*(has("거지 변기")?.1:.2);coins-=loss;toast(`변기가 막힘! ${fmt(loss)}코인 손실`)}}
+    evaluateHidden();updateUI();save();toast("+"+fmt(gain)+" 코인");setTimeout(()=>earnReady=true,100)};
+  let autoClock=0;setInterval(()=>{autoClock++;let raw=0,penalty=0;characters.forEach((c,i)=>{const count=Math.min(3,owned[i]||0),b=BUFFS[c.name]||{},a=b.auto;if(count&&a&&autoClock%a[1]===0)raw+=a[0]*count;if(count&&!has("부처 변기"))penalty+=(b.autoPenalty||0)*count});if(has("수집가 변기"))raw*=1+.25*stacks("수집가 변기");raw*=Math.max(.2,1-Math.min(80,penalty)/100);let gain=raw*multiplier();if(has("노예 변기")&&!has("부처 변기")&&autoClock%3===0)gain-=5*stacks("노예 변기");if(gain!==0){const before=coins;coins+=gain;if(gain>0)totalEarned+=gain;wealthCleaner(before);if(triggerGameOver())return;evaluateHidden();updateUI();save()}},1000);
+  const up=cloneButton("upgradeButton");up.onclick=()=>{if(upgrading)return;if(upgradeLevel>=MAX_UPGRADE)return alert("강화가 완료되었습니다!");if(coins<upgradeCost)return toast(`강화에 ${upgradeCost}코인이 필요합니다.`);coins-=upgradeCost;upgrading=true;upgradeOverlay.style.display="block";upgradeClose.style.display="none";upgradeMessage.innerHTML=`변기를 강화하는 중...<br><br>성공 확률 ${effectiveChance()}%`;const costNow=upgradeCost;setTimeout(()=>{let success=Math.random()*100<effectiveChance();if(!success&&has("오딘 변기")&&Math.random()<Math.min(.72,.24*stacks("오딘 변기"))){upgradeMessage.innerHTML="오딘의 룬!<br><br>강화 실패가 무효화되었습니다."}else if(success){moneyPower+=.25;upgradeLevel++;upgradeAttempt++;upgradeCost=costNow+2;upgradeMessage.innerHTML=upgradeLevel>=MAX_UPGRADE?`강화가 완료되었습니다!<br><br>${MAX_UPGRADE}강 달성 · 클릭 획득량 ${fmt(moneyPower)}`:"강화 성공!<br><br>클릭 획득량 +0.25"}else upgradeMessage.innerHTML="강화 실패...<br><br>가격과 성공 확률이 유지됩니다.";upgradeClose.style.display="inline-block";save();updateUI()},1700)};
+
+  function weightedPick(pool){let total=pool.reduce((s,[c])=>s+(c.rollWeight||1),0),r=Math.random()*total;for(const [c,i] of pool){r-=c.rollWeight||1;if(r<=0)return i}return pool[0][1]}
+  function rollCharacter(zone){if(zone==="크툴루"){if(Math.random()<.10)return idx("바알제브 변기");return Math.random()<.5?idx("아자토스 변기"):idx("크툴루 변기")}const next={일반:"레어",레어:"에픽",에픽:"레전더리"},rarity=next[zone]&&Math.random()<.005?next[zone]:zone,pool=characters.map((c,i)=>[c,i]).filter(v=>v[0].rarity===rarity);return weightedPick(pool)}
+  function playReveal(rarity){if(!["에픽","레전더리","크툴루"].includes(rarity))return;const fx=document.createElement("div");fx.className="revealFx "+(rarity==="레전더리"?"legendary":rarity==="크툴루"?"cthulhu":"epic");for(let i=0;i<(rarity==="크툴루"?8:18);i++){const p=document.createElement("i");p.style.setProperty("--a",`${i*360/(rarity==="크툴루"?8:18)}deg`);fx.appendChild(p)}document.getElementById("gachaScreen").appendChild(fx);setTimeout(()=>fx.remove(),1500)}
+  const gachaOpen=cloneButton("gachaButton");gachaOpen.onclick=()=>{if(currentZone==="트로피"||currentZone==="히든")return toast(currentZone+" 구역에는 뽑기 기계가 없습니다.");showScreen("gacha");document.getElementById("gachaTitle").textContent=currentZone+" 뽑기";pull.textContent=GACHA_PRICE[currentZone].toLocaleString()+" COIN 뽑기";buildBatchButtons();updateUI()};
+  const pull=cloneButton("gachaPull");pull.onclick=()=>{if(gachaState!=="idle")return;const price=GACHA_PRICE[currentZone];if(coins<price)return alert("코인이 부족합니다.");coins-=price;currentGacha=rollCharacter(currentZone);capsuleY=245;gachaState="falling";pull.style.display="none";batchBar.style.display="none";updateUI();save();setTimeout(()=>{gachaState="ready";capsule.style.display="block"},1200)};
+  const batchBar=document.createElement("div");batchBar.id="gachaBatch";document.getElementById("gachaScreen").appendChild(batchBar);
+  function buildBatchButtons(){batchBar.innerHTML=`<div id="ticketStatus">뽑기권 · 레어 ${gachaTickets.레어} / 에픽 ${gachaTickets.에픽} / 레전더리 ${gachaTickets.레전더리}</div>`;const counts=currentZone==="레전더리"?[10]:currentZone==="크툴루"?[]:[10,30];counts.forEach(count=>{const b=document.createElement("button");const total=GACHA_PRICE[currentZone]*count;b.textContent=`${count}번 연속 (${total.toLocaleString()})`;b.onclick=()=>runBatchGacha(count);batchBar.appendChild(b)});if(["레어","에픽","레전더리"].includes(currentZone)){const t=document.createElement("button");t.textContent=`${currentZone} 뽑기권 사용 (${gachaTickets[currentZone]})`;t.onclick=()=>useGachaTicket(currentZone);batchBar.appendChild(t)}}
+  function useGachaTicket(rarity){if(gachaState!=="idle")return;if(gachaTickets[rarity]<1)return alert(`${rarity} 뽑기권이 없습니다.`);if(!confirm(`${rarity} 뽑기권 1장을 사용하시겠습니까?\n디버프 없는 ${rarity} 변기가 등장합니다.`))return;const pool=characters.map((c,i)=>[c,i]).filter(([c])=>c.rarity===rarity&&!c.negative);if(!pool.length)return;gachaTickets[rarity]--;const i=weightedPick(pool),c=characters[i];owned[i]++;discovered[i]=true;uniqueRoamers();evaluateHidden();resultContext.clearRect(0,0,130,105);drawCharacter(resultContext,c,33,15);document.getElementById("resultName").textContent=`${c.name} / ${c.rarity}`;document.getElementById("resultAbility").innerHTML=`<b>뽑기권 결과</b><br>${c.description}`;gachaResult.style.display="block";pull.style.display="none";batchBar.style.display="none";gachaState="result";playReveal(c.rarity);save();updateUI()}
+  function runBatchGacha(count){if(gachaState!=="idle")return;const total=GACHA_PRICE[currentZone]*count;if(coins<total)return alert(`${total.toLocaleString()}코인이 필요합니다.`);coins-=total;const results=[];for(let n=0;n<count;n++){const i=rollCharacter(currentZone);results.push(i);owned[i]++;discovered[i]=true}uniqueRoamers();evaluateHidden();const grouped={};results.forEach(i=>grouped[i]=(grouped[i]||0)+1);const best=results.reduce((a,b)=>RARITIES.indexOf(characters[b].rarity)>RARITIES.indexOf(characters[a].rarity)?b:a,results[0]);resultContext.clearRect(0,0,130,105);drawCharacter(resultContext,characters[best],33,15);document.getElementById("resultName").textContent=`${currentZone} ${count}번 연속 뽑기 결과`;document.getElementById("resultAbility").innerHTML=Object.entries(grouped).sort((a,b)=>+a[0]-+b[0]).map(([i,n])=>`${characters[i].name} ×${n}`).join("<br>");gachaResult.style.display="block";pull.style.display="none";batchBar.style.display="none";gachaState="result";playReveal(characters[best].rarity);save();updateUI()}
+  const capsule=cloneButton("openCapsule");capsule.onclick=()=>{const c=characters[currentGacha],wasZero=owned[currentGacha]===0;owned[currentGacha]++;discovered[currentGacha]=true;if(c.name==="바알제브 변기"){coins=0;setTimeout(()=>alert("바알제브 강림!\n남아 있던 모든 재산이 사라졌습니다."),100)}if(wasZero&&c.rarity===currentZone)addRoamingCharacter(currentGacha);evaluateHidden();resultContext.clearRect(0,0,130,105);drawCharacter(resultContext,c,33,15);document.getElementById("resultName").textContent=`${c.name} / ${c.rarity}`;document.getElementById("resultAbility").innerHTML=`<b>${c.ability}</b><br>${c.description}`;gachaResult.style.display="block";capsule.style.display="none";gachaState="result";playReveal(c.rarity);save();updateUI()};
+  const resultDone=cloneButton("resultClose");resultDone.onclick=()=>{gachaResult.style.display="none";gachaResult.classList.remove("rareGlow");pull.style.display="block";batchBar.style.display="flex";buildBatchButtons();gachaState="idle";currentGacha=null};
+
+  const collection=cloneButton("collectionButton");collection.onclick=()=>{buildDetailedCollection();showScreen("collection")};
+  const ATTACK_LIMIT={"일반":25,"레어":50,"에픽":75,"레전더리":100};
+  const ATTACK_MIN={"일반":5,"레어":26,"에픽":51,"레전더리":76};
+  const ATTACK_OVERRIDES={"미니 변기":8,"대형 변기":25,"청소 변기":24,"산업용 변기":50,"콘크리트 변기":49,"전기 변기":50,"폭주 변기":75,"우주 변기":74,"왕실 변기":75,"악마 변기":75,"블랙홀 변기":75,"토르 변기":100,"오딘 변기":100,"태양신 라 변기":100,"시바신 변기":100};
+  function attackPower(c){if(c.negative||c.rarity==="크툴루"||c.rarity==="히든")return 0;if(ATTACK_OVERRIDES[c.name]!=null)return ATTACK_OVERRIDES[c.name];const same=characters.filter(x=>x.rarity===c.rarity&&!x.negative),position=Math.max(0,same.indexOf(c)),min=ATTACK_MIN[c.rarity]||0,max=ATTACK_LIMIT[c.rarity]||0;return Math.min(max,min+((position*7+c.name.length*3)%(max-min+1)))}
+  characters.forEach(c=>c.attack=attackPower(c));
+  function attackLabel(c){if(c.rarity==="히든")return "전투: 지원 전용";if(c.rarity==="크툴루")return "전투: 출전 제외";if(c.negative)return "전투: 디버프 변기 출전 불가";return `공격력: ${c.attack} / ${ATTACK_LIMIT[c.rarity]}`}
+  function totalAttackPower(){return characters.reduce((sum,c,i)=>sum+c.attack*Math.min(3,owned[i]||0),0)}
+  function collectionCard(c,i,ownedCard){const card=document.createElement("div");card.className="card";const cv=document.createElement("canvas");cv.width=92;cv.height=90;drawCharacter(cv.getContext("2d"),c,14,8);const info=document.createElement("div");info.className="cardInfo";info.innerHTML=ownedCard?`<b>${c.name} ×${owned[i]}</b><br>등급: ${c.rarity}<br><b>${attackLabel(c)}</b><br>${c.description}<br>효과·공격력 중첩: ${Math.min(3,owned[i])}/3`:`<b>${c.name}</b><br>등급: ${c.rarity}<br><b>${attackLabel(c)}</b><br>${c.description}`;if(ownedCard&&i!==0&&c.rarity!=="히든"){const s=document.createElement("button");s.className="pixelAction";s.textContent=c.negative?"100,000코인 내고 제거":"판매 "+SELL_PRICE[c.rarity];s.onclick=()=>{const message=c.negative?`${c.name}을(를) 제거하기 위해 100,000코인을 지불하시겠습니까?`:`${c.name}을(를) ${SELL_PRICE[c.rarity].toLocaleString()}코인에 판매하시겠습니까?`;if(!confirm(message+"\n실행 후에는 되돌릴 수 없습니다."))return;if(c.negative){if(coins<100000)return toast("100,000코인이 필요합니다.");coins-=100000}else{const before=coins,g=SELL_PRICE[c.rarity];coins+=g;totalEarned+=g;wealthCleaner(before)}owned[i]--;uniqueRoamers();evaluateHidden();save();updateUI();buildDetailedCollection()};info.appendChild(document.createElement("br"));info.appendChild(s)}card.append(cv,info);return card}
+  function buildDetailedCollection(){const list=document.getElementById("collectionList"),foundCount=characters.filter((c,i)=>c.rarity!=="히든"&&discovered[i]).length;list.innerHTML=`<h2 class="collectionSection">내가 가진 변기</h2><div style="margin:8px 10px;font-weight:bold">총 공격력: ${totalAttackPower().toLocaleString()}<br><small>동일 변기는 최대 3개까지 계산 · 크툴루/히든/디버프 제외</small><br>트로피 수집 진행: ${foundCount} / 93${trophyUnlocked?" · 완료":""}</div>`;DISPLAY_RARITIES.forEach(r=>{const found=characters.map((c,i)=>[c,i]).filter(([c,i])=>c.rarity===r&&owned[i]>0);if(!found.length)return;const h=document.createElement("h3");h.className="rarityHeading";h.textContent=r;list.appendChild(h);found.forEach(([c,i])=>list.appendChild(collectionCard(c,i,true))) });const all=document.createElement("h2");all.className="collectionSection";all.textContent="전체 변기 도감 — 모든 디자인";list.appendChild(all);DISPLAY_RARITIES.forEach(r=>{const h=document.createElement("h3");h.className="rarityHeading";h.textContent=r;list.appendChild(h);characters.forEach((c,i)=>{if(c.rarity===r)list.appendChild(collectionCard(c,i,false))})})}
+  const furn=cloneButton("furnitureButton");furn.onclick=()=>{buildFurnitureShop();showScreen("furniture")};
+  function furniturePlaced(i){return placedFurniture.some(p=>p.furnitureIndex===i||(!Number.isInteger(p.furnitureIndex)&&p.type===furnitureCatalog[i].type))}
+  function beginFurniturePlacement(i){if(!confirm(`${furnitureCatalog[i].name}을(를) 설치하시겠습니까?`))return;furniturePlacementIndex=i;showScreen("main");toast("설치할 위치를 눌러주세요.")}
+  buildFurnitureShop=function(){const content=document.getElementById("furnitureContent");content.innerHTML="";furnitureCatalog.forEach((it,i)=>{const row=document.createElement("div");row.className="furnitureCard";const placed=furniturePlaced(i);row.innerHTML=`<div class="furnitureTitle">${it.name}</div><div class="furnitureDescription">${it.description}<br>가격: ${it.price.toLocaleString()} 코인<br>${purchasedFurniture[i]?(placed?"설치 완료":"보관 중 · 원하는 위치에 설치 가능"):"미구매"}</div>`;const b=document.createElement("button");b.className="buyFurniture";b.textContent=!purchasedFurniture[i]?"구매":placed?"설치 완료":"설치하기";b.disabled=placed;b.onclick=()=>{if(!purchasedFurniture[i]){if(coins<it.price)return toast("코인이 부족합니다.");coins-=it.price;purchasedFurniture[i]=true;save();updateUI();if(confirm(`${it.name} 구매 완료!\n지금 설치하시겠습니까?`)){furniturePlacementIndex=i;showScreen("main");toast("설치할 위치를 눌러주세요.")}else buildFurnitureShop()}else beginFurniturePlacement(i)};row.appendChild(b);content.appendChild(row)})};
+  mainCanvas.addEventListener("pointerdown",event=>{if(furniturePlacementIndex===null)return;event.preventDefault();event.stopImmediatePropagation();const p=pointerPosition(mainCanvas,event),i=furniturePlacementIndex,x=Math.max(38,Math.min(mainCanvas.width-38,p.x)),y=Math.max(170,Math.min(mainCanvas.height-190,p.y));placedFurniture.push({type:furnitureCatalog[i].type,furnitureIndex:i,x,y});furniturePlacementIndex=null;save();toast(`${furnitureCatalog[i].name} 설치 완료!`)},true);
+
+  const oldDrawBackground=drawBackground;drawBackground=function(){oldDrawBackground();if(currentBackground==="황금"){ctx.fillStyle="rgba(238,190,35,.24)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height)}else if(currentBackground==="다이아"){ctx.fillStyle="rgba(80,230,235,.18)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height)}else if(currentBackground==="우주"){ctx.fillStyle="rgba(20,10,55,.65)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height);ctx.fillStyle="#fff";for(let i=0;i<35;i++)ctx.fillRect((i*83)%mainCanvas.width,(i*47)%mainCanvas.height,2,2)}else if(currentBackground==="절"){ctx.fillStyle="rgba(119,70,35,.2)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height);ctx.fillStyle="#5b2d21";ctx.fillRect(45,135,340,18);ctx.fillStyle="#d8b85c";ctx.fillRect(75,153,280,82);for(let i=0;i<5;i++){ctx.fillStyle="#39231c";ctx.fillRect(88+i*62,165,10,70)}ctx.fillStyle="#8f2d24";ctx.fillRect(25,127,380,10);ctx.fillStyle="#f2d36c";for(let i=0;i<6;i++)ctx.fillRect(35+i*70,238,9,25)}if(currentZone==="레전더리"){ctx.fillStyle="rgba(255,215,60,.08)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height)}if(currentZone==="크툴루"){ctx.fillStyle="rgba(25,0,45,.28)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height)}};
+  const extraBackgroundBase=drawBackground;drawBackground=function(){extraBackgroundBase();if(currentBackground==="카지노"){ctx.fillStyle="rgba(55,0,12,.48)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height);ctx.fillStyle="#e7bd38";for(let i=0;i<8;i++)ctx.fillRect(18+i*57,150+(i%2)*55,28,8)}else if(currentBackground==="심해"){ctx.fillStyle="rgba(0,45,70,.62)";ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height);ctx.strokeStyle="#55c7c9";for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(30+i*59,145+(i%3)*48,8+(i%3)*4,0,Math.PI*2);ctx.stroke()}}else if(currentBackground==="도시"){const w=mainCanvas.width,h=mainCanvas.height,night=ctx.createLinearGradient(0,0,0,h);night.addColorStop(0,"#070b24");night.addColorStop(.48,"#172353");night.addColorStop(1,"#321b48");ctx.fillStyle=night;ctx.fillRect(0,0,w,h);ctx.fillStyle="#f4edbd";ctx.beginPath();ctx.arc(w-58,91,25,0,Math.PI*2);ctx.fill();ctx.fillStyle="#111938";ctx.beginPath();ctx.arc(w-48,82,25,0,Math.PI*2);ctx.fill();for(let i=0;i<34;i++){ctx.fillStyle=i%7?"#d9e7ff":"#7adfff";const s=i%9===0?3:2;ctx.fillRect((i*79+17)%w,26+(i*47)%155,s,s)}const towers=[[-12,205,72,220,"#11162f"],[48,154,67,271,"#202854"],[109,225,58,200,"#10172d"],[161,126,78,299,"#242c5b"],[233,190,62,235,"#111932"],[288,143,71,282,"#202750"],[352,214,84,211,"#0f152d"]];towers.forEach((b,bi)=>{ctx.fillStyle=b[4];ctx.fillRect(b[0],b[1],b[2],b[3]);ctx.fillStyle=bi%2?"#ffcf55":"#62cfff";for(let yy=b[1]+18;yy<Math.min(h-80,b[1]+b[3]-12);yy+=24)for(let xx=b[0]+11;xx<b[0]+b[2]-7;xx+=19)if((xx+yy+bi*13)%5!==0)ctx.fillRect(xx,yy,7,9)});ctx.fillStyle="#111326";ctx.fillRect(0,h-91,w,91);ctx.fillStyle="#303553";ctx.fillRect(0,h-82,w,54);ctx.fillStyle="#f1d05d";for(let x=14;x<w;x+=55)ctx.fillRect(x,h-57,28,4);ctx.fillStyle="rgba(82,199,255,.18)";for(let x=32;x<w;x+=97)ctx.fillRect(x,h-78,9,42);ctx.fillStyle="rgba(255,72,177,.18)";for(let x=75;x<w;x+=121)ctx.fillRect(x,h-72,8,34);ctx.fillStyle="#ff4ca1";ctx.fillRect(178,157,45,18);ctx.fillStyle="#fff";ctx.font="bold 8px monospace";ctx.textAlign="center";ctx.fillText("TOILET",200,169);ctx.textAlign="start"}};
+  const oldDrawFurniture=drawFurniture;drawFurniture=function(it){oldDrawFurniture(it);if(it.type==="wardrobe"){ctx.fillStyle="#111";ctx.fillRect(it.x-25,it.y-50,50,68);ctx.fillStyle="#8c613b";ctx.fillRect(it.x-22,it.y-47,44,62);ctx.fillStyle="#f0c52d";ctx.fillRect(it.x+12,it.y-17,5,5)}};
+  const furnitureShapeBase=drawFurniture;drawFurniture=function(it){furnitureShapeBase(it);const x=it.x,y=it.y;ctx.save();ctx.lineWidth=2;
+    if(it.type==="flower"){ctx.fillStyle="#4b8a43";ctx.fillRect(x-12,y-45,5,31);ctx.fillRect(x+6,y-39,5,25);ctx.fillStyle="#e95b69";ctx.fillRect(x-19,y-51,15,12);ctx.fillStyle="#f4d348";ctx.fillRect(x+1,y-47,16,13)}
+    if(it.type==="desk"){ctx.fillStyle="#111";ctx.fillRect(x-32,y-28,66,10);ctx.fillRect(x-26,y-18,7,38);ctx.fillRect(x+23,y-18,7,38);ctx.fillStyle="#9a6235";ctx.fillRect(x-29,y-25,60,5);ctx.fillStyle="#d8a26c";ctx.fillRect(x+5,y-15,19,14);ctx.fillStyle="#111";ctx.fillRect(x+18,y-10,3,3)}
+    if(it.type==="chair"){ctx.fillStyle="#d5a052";ctx.fillRect(x-12,y-22,24,16);ctx.fillRect(x-15,y-43,30,17);ctx.fillRect(x-10,y-6,5,25);ctx.fillRect(x+7,y-6,5,25)}
+    if(it.type==="sink"){ctx.fillStyle="#111";ctx.fillRect(x-29,y-35,58,27);ctx.fillStyle="#eefaff";ctx.fillRect(x-26,y-32,52,21);ctx.fillStyle="#68c9e9";ctx.fillRect(x-17,y-27,34,7);ctx.fillStyle="#777";ctx.fillRect(x-3,y-49,7,18);ctx.fillRect(x+2,y-49,14,5);ctx.strokeStyle="#9eeaff";ctx.strokeRect(x-21,y-76,42,24)}
+    if(it.type==="bath"){ctx.fillStyle="#111";ctx.fillRect(x-38,y-30,78,42);ctx.fillStyle="#f5fbff";ctx.fillRect(x-35,y-27,72,34);ctx.fillStyle="#68c9e9";ctx.fillRect(x-29,y-20,60,17);ctx.fillStyle="#777";ctx.fillRect(x+25,y-43,5,17);ctx.fillRect(x+29,y-43,12,5);ctx.fillStyle="#fff";ctx.fillRect(x-15,y-26,8,8);ctx.fillRect(x+5,y-22,6,6)}
+    if(it.type==="motorcycle"){ctx.strokeStyle="#777";ctx.lineWidth=4;ctx.beginPath();ctx.arc(x-20,y+7,10,0,Math.PI*2);ctx.arc(x+27,y+7,10,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#e24338";ctx.fillRect(x-13,y-13,36,13);ctx.fillStyle="#111";ctx.fillRect(x+17,y-23,18,4);ctx.fillRect(x+29,y-23,4,15)}
+    if(it.type==="tv"){ctx.fillStyle="#111";ctx.fillRect(x-31,y-48,63,45);ctx.fillStyle="#344c66";ctx.fillRect(x-26,y-43,47,34);ctx.fillStyle="#8ce2f5";ctx.fillRect(x-22,y-39,39,26);ctx.fillStyle="#ddd";ctx.fillRect(x+25,y-35,4,4);ctx.fillRect(x+25,y-25,4,4);ctx.fillStyle="#111";ctx.fillRect(x-7,y-3,15,12);ctx.fillRect(x-22,y+8,45,5);line(ctx,x-4,y-48,x-15,y-65,"#111",3);line(ctx,x+4,y-48,x+15,y-65,"#111",3)}
+    if(it.type==="safe"){ctx.strokeStyle="#aaa";ctx.lineWidth=3;ctx.strokeRect(x-16,y-31,31,34);ctx.beginPath();ctx.arc(x,y-14,8,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#ddd";ctx.fillRect(x-2,y-18,4,9)}
+    if(it.type==="fountain"){ctx.fillStyle="#111";ctx.fillRect(x-36,y+3,72,13);ctx.fillStyle="#86cfe8";ctx.fillRect(x-32,y+6,64,7);ctx.fillStyle="#777";ctx.fillRect(x-7,y-31,14,35);ctx.beginPath();ctx.arc(x,y-35,12,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#65d9ff";ctx.lineWidth=3;for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*7,y-34);ctx.quadraticCurveTo(x+i*24,y-57,x+i*29,y-10);ctx.stroke()}}
+    if(it.type==="statue"){ctx.fillStyle="#111";ctx.fillRect(x-29,y+2,58,16);ctx.fillStyle="#c79512";ctx.fillRect(x-25,y+5,50,10);ctx.fillStyle="#f0c52d";ctx.fillRect(x-18,y-39,36,37);ctx.fillRect(x-25,y-25,50,9);ctx.fillStyle="#fff3a0";ctx.fillRect(x-12,y-34,5,22)}ctx.restore()};
+  drawBackground=function(){const w=mainCanvas.width,h=mainCanvas.height,t=performance.now()/1000;ctx.clearRect(0,0,w,h);
+    if(currentZone==="트로피"){const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,"#17112e");grad.addColorStop(1,"#40245d");ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.fillStyle="#f1cf55";for(let i=0;i<9;i++)ctx.fillRect(i*w/8-2,115,4,h-115);ctx.fillStyle="#3d315f";ctx.fillRect(0,h*.68,w,h*.32);for(let y=h*.68;y<h;y+=34){ctx.strokeStyle="#6b5795";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}drawTrophyRoom(w,h,t);return}
+    if(currentBackground==="기본"){ctx.fillStyle="#ededed";ctx.fillRect(0,0,w,115);ctx.fillStyle="#d5d5d5";ctx.fillRect(0,116,w,h-116);ctx.strokeStyle="#bdbdbd"}
+    if(currentBackground==="황금"){ctx.fillStyle="#8c6114";ctx.fillRect(0,0,w,115);ctx.fillStyle="#d6a927";ctx.fillRect(0,116,w,h-116);ctx.strokeStyle="#fff0a0";for(let i=0;i<7;i++){ctx.fillStyle=i%2?"#f4d45c":"#b98213";ctx.fillRect(i*w/7,0,w/7-3,112)}for(let i=0;i<14;i++){ctx.fillStyle="#fff4a8";ctx.fillRect((i*83)%w,125+(i*47)%(h-155),3,3)}}
+    if(currentBackground==="다이아"){ctx.fillStyle="#dffcff";ctx.fillRect(0,0,w,115);ctx.fillStyle="#8ed6dc";ctx.fillRect(0,116,w,h-116);ctx.strokeStyle="#eaffff";for(let i=0;i<9;i++){const x=(i%5)*95-20,y=Math.floor(i/5)*62+7;ctx.fillStyle=i%2?"#a9eef0":"#fff";ctx.beginPath();ctx.moveTo(x+35,y);ctx.lineTo(x+68,y+29);ctx.lineTo(x+35,y+57);ctx.lineTo(x+2,y+29);ctx.closePath();ctx.fill()}}
+    if(currentBackground==="우주"){const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,"#08051b");grad.addColorStop(1,"#25104a");ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.strokeStyle="#593f7e";for(let i=0;i<48;i++){ctx.fillStyle=i%8?"#fff":"#9be8ff";ctx.fillRect((i*83)%w,(i*47)%h,i%9?2:4,i%9?2:4)}ctx.fillStyle="#7753ad";ctx.beginPath();ctx.arc(w-55,150,32,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#c5a5ef";ctx.beginPath();ctx.ellipse(w-55,150,53,13,-.25,0,Math.PI*2);ctx.stroke()}
+    if(currentBackground!=="우주"){for(let x=0;x<w;x+=43){ctx.beginPath();ctx.moveTo(x,116);ctx.lineTo(x,h);ctx.stroke()}for(let y=116;y<h;y+=43){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}}if(currentZone==="레전더리"){ctx.fillStyle="rgba(255,225,80,.08)";ctx.fillRect(0,0,w,h)}if(currentZone==="크툴루"){ctx.fillStyle="rgba(24,0,46,.25)";ctx.fillRect(0,0,w,h)}};
+  function drawTrophyRoom(w,h,t){const x=w/2,y=Math.min(h-260,345);ctx.save();ctx.globalAlpha=.18+.08*Math.sin(t*3);ctx.fillStyle="#fff1a3";ctx.fillRect(x-55,100,110,y-70);ctx.restore();ctx.fillStyle="#111";ctx.fillRect(x-58,y+70,116,20);ctx.fillStyle="#bd8220";ctx.fillRect(x-53,y+74,106,12);ctx.fillStyle="#111";ctx.fillRect(x-34,y+35,68,39);ctx.fillStyle="#edbd2d";ctx.fillRect(x-29,y+39,58,31);ctx.fillStyle="#111";ctx.beginPath();ctx.arc(x,y,49,0,Math.PI);ctx.fill();ctx.fillStyle="#f4ca3f";ctx.beginPath();ctx.arc(x,y,43,0,Math.PI);ctx.fill();ctx.fillRect(x-43,y-2,86,13);ctx.strokeStyle="#f4ca3f";ctx.lineWidth=9;ctx.beginPath();ctx.arc(x-48,y+5,23,-Math.PI/2,Math.PI/2,true);ctx.arc(x+48,y+5,23,-Math.PI/2,Math.PI/2);ctx.stroke();ctx.fillStyle="#fff2a0";ctx.fillRect(x-19,y-34,9,55);const gems=["#eee","#4cc9ff","#e4ad27","#bc77ff","#52d99b"];gems.forEach((v,i)=>{ctx.fillStyle=v;ctx.beginPath();ctx.moveTo(x-50+i*25,y+52);ctx.lineTo(x-42+i*25,y+44);ctx.lineTo(x-34+i*25,y+52);ctx.lineTo(x-42+i*25,y+60);ctx.fill()});ctx.fillStyle="#fff";ctx.font="bold 13px monospace";ctx.textAlign="center";ctx.fillText("ALL TOILETS MASTER",x,y+112)};
+  const oldDrawCharacter=drawCharacter;drawCharacter=function(context,c,x,y){context.save();if(c.rarity==="크툴루"){context.translate(x-8,y-9);context.scale(1.28,1.28);x=0;y=0;context.fillStyle=c.name.includes("아자토스")?"rgba(130,30,220,.22)":"rgba(30,190,120,.22)";context.beginPath();context.arc(32,35,40,0,Math.PI*2);context.fill()}else if(c.rarity==="레전더리"){context.fillStyle="rgba(255,220,60,.25)";context.beginPath();context.arc(x+32,y+35,36,0,Math.PI*2);context.fill()}oldDrawCharacter(context,c,x,y);if(c.rarity==="레전더리"){context.fillStyle="#f4cf45";context.fillRect(x+10,y-2,44,4);if(c.name.includes("오딘")){context.fillStyle="#111";context.fillRect(x+20,y+14,9,7)}if(c.name.includes("토르")){context.fillStyle="#9ad7ff";context.fillRect(x+57,y+12,5,35);context.fillRect(x+50,y+10,18,10)}if(c.name.includes("라 변기")){context.strokeStyle="#f4c430";context.lineWidth=5;context.beginPath();context.arc(x+32,y,13,0,Math.PI*2);context.stroke()}}if(c.rarity==="크툴루"){context.strokeStyle=c.name.includes("아자토스")?"#9b4de0":"#48c592";context.lineWidth=4;for(let i=0;i<4;i++){context.beginPath();context.moveTo(x+12+i*12,y+60);context.quadraticCurveTo(x-5+i*18,y+78,x+2+i*18,y+88);context.stroke()}}context.restore()};
+  const oldDrawMain=drawMain;drawMain=function(){oldDrawMain();if(currentSkin!=="양변기"){const skin=characters[idx(currentSkin)]||characters[0];ctx.save();drawCharacter(ctx,skin,player.x,player.y+(player.moving?Math.sin(performance.now()/90)*2:0));ctx.fillStyle="#111";ctx.font="11px monospace";ctx.textAlign="center";ctx.fillText(playerNameValue,player.x+31,player.y-7);ctx.restore()}};
+
+  /* 이름의 특징이 바로 보이는 캐릭터별 픽셀 장식 */
+  const characterShapeBase=drawCharacter;
+  function line(c,x1,y1,x2,y2,color,width=3){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()}
+  function crown(c,x,y,color="#f2c230"){c.fillStyle="#111";c.fillRect(x-2,y-2,38,14);c.fillStyle=color;c.beginPath();c.moveTo(x,y+10);c.lineTo(x,y);c.lineTo(x+8,y+7);c.lineTo(x+16,y-1);c.lineTo(x+24,y+7);c.lineTo(x+34,y);c.lineTo(x+34,y+10);c.closePath();c.fill()}
+  function aura(c,x,y,color,r=38){c.save();c.globalAlpha=.22+.08*Math.sin(performance.now()/180);c.fillStyle=color;c.beginPath();c.arc(x+32,y+34,r,0,Math.PI*2);c.fill();c.globalAlpha=.8;for(let i=0;i<6;i++){const a=performance.now()/700+i*Math.PI/3;c.fillRect(x+29+Math.cos(a)*r,y+31+Math.sin(a)*r,4,4)}c.restore()}
+  function namedDecoration(c,ch,x,y){const n=ch.name;
+    if(n.includes("네온")){c.strokeStyle="#48ffe0";c.lineWidth=3;c.strokeRect(x+4,y+1,58,68);c.fillStyle="#ff54ef";c.fillRect(x+52,y+7,6,18)}
+    if(n.includes("얼음")){c.fillStyle="#d9fbff";for(let i=0;i<4;i++){c.beginPath();c.moveTo(x+7+i*16,y+2);c.lineTo(x+13+i*16,y-10-(i%2)*5);c.lineTo(x+19+i*16,y+2);c.fill()}}
+    if(n.includes("대리석")){c.strokeStyle="#888";c.lineWidth=2;c.beginPath();c.moveTo(x+14,y+8);c.lineTo(x+32,y+25);c.lineTo(x+21,y+43);c.moveTo(x+48,y+5);c.lineTo(x+38,y+18);c.lineTo(x+52,y+33);c.stroke()}
+    if(n.includes("나무")){c.fillStyle="#57351e";for(let i=0;i<4;i++)c.fillRect(x+14,y+9+i*12,34,2)}
+    if(n.includes("산업용")){c.fillStyle="#252b2e";c.fillRect(x+5,y+25,7,31);c.fillRect(x+54,y+18,8,38);c.fillStyle="#f2c230";c.fillRect(x+55,y+22,6,7);c.fillRect(x+55,y+37,6,7)}
+    if(n.includes("병원")){c.fillStyle="#e34d4d";c.fillRect(x+48,y+8,5,18);c.fillRect(x+42,y+14,17,5)}
+    if(n.includes("학교")){c.fillStyle="#315b9c";c.fillRect(x+8,y-7,50,8);c.fillStyle="#fff";c.font="7px monospace";c.fillText("SCHOOL",x+18,y-1)}
+    if(n.includes("공중화장실")){c.fillStyle="#2876bd";c.fillRect(x+2,y-12,62,11);c.fillStyle="#fff";c.font="8px monospace";c.fillText("WC",x+25,y-4)}
+    if(n.includes("휴게소")){c.fillStyle="#2d8e55";c.fillRect(x+3,y-11,58,10);c.fillStyle="#fff";c.font="7px monospace";c.fillText("REST",x+23,y-4)}
+    if(n.includes("호텔")){c.fillStyle="#f2c230";for(let i=0;i<3;i++)c.fillRect(x+19+i*11,y-7,6,6);c.fillStyle="#703d1f";c.fillRect(x+50,y+25,10,25)}
+    if(n.includes("투명")){c.save();c.globalAlpha=.35;c.fillStyle="#fff";c.fillRect(x+13,y+6,33,52);c.restore();c.strokeStyle="#dfffff";c.strokeRect(x+12,y+5,35,54)}
+    if(n.includes("콘크리트")){c.fillStyle="#555";for(let i=0;i<7;i++)c.fillRect(x+10+(i*17)%46,y+8+(i*13)%45,3,3)}
+    if(n.includes("고무")){c.strokeStyle="#f7ef55";c.lineWidth=4;c.strokeRect(x+8,y+29,48,30)}
+    if(n.includes("벽돌")){c.strokeStyle="#6c2f28";c.lineWidth=2;for(let yy=8;yy<56;yy+=10){line(c,x+9, y+yy,x+53,y+yy,"#6c2f28",1);for(let xx=(yy/10)%2?18:8;xx<55;xx+=18)line(c,x+xx,y+yy,x+xx,y+yy+10,"#6c2f28",1)}}
+    if(n.includes("캠핑")){c.fillStyle="#354c29";c.beginPath();c.moveTo(x-4,y+62);c.lineTo(x+14,y+26);c.lineTo(x+25,y+62);c.fill()}
+    if(n.includes("용암")){c.fillStyle="#ff7b21";for(let i=0;i<4;i++){c.fillRect(x+9+i*13,y+8+(i%2)*13,5,18);c.fillStyle="#ffd33d";c.fillRect(x+10+i*13,y+9+(i%2)*13,2,12);c.fillStyle="#ff7b21"}}
+    if(n.includes("로봇")){c.fillStyle="#53e5ff";c.fillRect(x+17,y+14,8,6);c.fillRect(x+39,y+14,8,6);line(c,x+32,y+3,x+32,y-8,"#111");c.fillStyle="#ef4f4f";c.fillRect(x+29,y-12,7,7)}
+    if(n.includes("유령")){c.save();c.globalAlpha=.42;c.fillStyle="#dfffff";c.fillRect(x-5,y+5,74,62);c.restore();c.fillStyle="#fff";for(let i=0;i<3;i++)c.fillRect(x+5+i*21,y+62,12,8)}
+    if(n.includes("카본")){c.fillStyle="#555";for(let yy=8;yy<56;yy+=8)for(let xx=12;xx<52;xx+=8)if((xx+yy)%16===0)c.fillRect(x+xx,y+yy,5,5)}
+    if(n.includes("게임기")){c.fillStyle="#111";c.fillRect(x+49,y+28,18,25);c.fillStyle="#65e2ff";c.fillRect(x+52,y+31,12,8);c.fillStyle="#e44";c.fillRect(x+56,y+44,4,4)}
+    if(n.includes("쌍둥이")){c.strokeStyle="#7c65d9";c.lineWidth=3;c.strokeRect(x-8,y+22,78,38);c.fillStyle="#7c65d9";c.fillRect(x+61,y+31,12,20)}
+    if(n.includes("폭주")){c.fillStyle="#ff492f";c.beginPath();c.moveTo(x-4,y+47);c.lineTo(x+8,y+21);c.lineTo(x+13,y+42);c.lineTo(x+25,y+18);c.lineTo(x+21,y+54);c.fill()}
+    if(n.includes("우주")){aura(c,x,y,"#7654d8",34);c.fillStyle="#fff";for(let i=0;i<5;i++)c.fillRect(x+7+i*12,y+3+(i*17)%52,3,3)}
+    if(n.includes("미래형")){c.strokeStyle="#66fff3";c.lineWidth=2;c.strokeRect(x+4,y+4,57,61);c.fillStyle="#66fff3";c.fillRect(x+52,y+14,13,4)}
+    if(n.includes("왕실")||n.includes("왕관"))crown(c,x+15,y-9);
+    if(n.includes("황금")){c.fillStyle="#fff6a8";c.fillRect(x+3,y+8,5,5);c.fillRect(x+57,y+28,4,4)}
+    if(n.includes("검은")){c.fillStyle="#777";c.fillRect(x+8,y+2,50,3)}if(n.includes("분홍")){c.fillStyle="#ff5c9b";c.fillRect(x+52,y+5,8,8)}if(n.includes("파란")){c.fillStyle="#d8f4ff";c.fillRect(x+53,y+9,5,20)}if(n.includes("초록")){c.fillStyle="#2e7b39";c.fillRect(x+3,y+38,8,18)}if(n.includes("빨간")){c.fillStyle="#ffb09d";c.fillRect(x+15,y+5,30,4)}
+    if(n.includes("녹슨")){c.fillStyle="#713b25";for(let i=0;i<6;i++)c.fillRect(x+10+(i*19)%46,y+8+(i*11)%48,5,4)}if(n.includes("곰팡이")){c.fillStyle="#31582f";for(let i=0;i<7;i++){c.beginPath();c.arc(x+10+(i*17)%48,y+9+(i*13)%46,3,0,Math.PI*2);c.fill()}}if(n.includes("부러진")){c.fillStyle="#111";c.fillRect(x+31,y+2,3,25);c.fillRect(x+28,y+24,9,4)}if(n.includes("썩은")){c.fillStyle="#382d22";for(let i=0;i<5;i++)c.fillRect(x+13+i*9,y+38+(i%2)*8,6,6)}
+    if(n.includes("물리학자")){c.strokeStyle="#111";c.strokeRect(x+16,y+12,12,9);c.strokeRect(x+37,y+12,12,9);line(c,x+28,y+16,x+37,y+16,"#111",2);c.fillStyle="#23364b";c.fillRect(x-13,y+4,18,27);c.fillStyle="#fff";c.font="6px monospace";c.fillText("E=mc²",x-12,y+15)}
+    if(n.includes("은색")){c.fillStyle="#fff";c.fillRect(x+15,y+6,7,45);c.fillStyle="#777";c.fillRect(x+48,y+8,4,39)}if(n.includes("종이")){c.strokeStyle="#9c9c9c";line(c,x+12,y+8,x+51,y+48,"#9c9c9c",2);line(c,x+51,y+8,x+12,y+48,"#ccc",2)}
+    if(n.includes("청소 변기")){c.fillStyle="#5bd5e6";c.fillRect(x+55,y+5,7,46);c.fillStyle="#fff";c.fillRect(x+49,y+2,19,9)}if(n.includes("찌그러진")){c.fillStyle="#555";c.fillRect(x+47,y+13,14,5)}if(n.includes("냄새나는")){c.strokeStyle="#62a83d";for(let i=0;i<3;i++){c.beginPath();c.moveTo(x+13+i*17,y);c.quadraticCurveTo(x+5+i*17,y-9,x+14+i*17,y-17);c.stroke()}}if(n.includes("물새는")){c.fillStyle="#54bfe5";c.fillRect(x+16,y+70,42,5);c.fillRect(x+52,y+61,4,10)}if(n.includes("진흙")){c.fillStyle="#65452e";for(let i=0;i<6;i++)c.fillRect(x+10+(i*13)%48,y+10+(i*19)%47,7,6)}if(n.includes("먼지")){c.fillStyle="#999";for(let i=0;i<7;i++)c.fillRect(x-5+(i*19)%75,y+(i*17)%65,3,3)}
+    if(n.includes("UFO")){c.fillStyle="#111";c.beginPath();c.ellipse(x+32,y+62,47,13,0,0,Math.PI*2);c.fill();c.fillStyle="#7ad7ef";c.beginPath();c.ellipse(x+32,y+58,42,10,0,0,Math.PI*2);c.fill();c.fillStyle="rgba(120,240,255,.3)";c.beginPath();c.moveTo(x+10,y+68);c.lineTo(x+54,y+68);c.lineTo(x+68,y+92);c.lineTo(x-4,y+92);c.fill()}
+    if(n.includes("해적")){c.fillStyle="#111";c.fillRect(x+9,y-8,48,13);c.fillRect(x+22,y-17,22,10);c.fillRect(x+18,y+14,12,7);c.fillStyle="#fff";c.fillRect(x+21,y+16,4,3)}if(n.includes("용접")){c.strokeStyle="#555";for(let i=0;i<5;i++)line(c,x+8,y+8+i*11,x+55,y+8+i*11,"#555",2)}if(n.includes("전기")){line(c,x-5,y+7,x+5,y+18,"#74eaff",3);line(c,x+5,y+18,x-3,y+30,"#74eaff",3);line(c,x+65,y+5,x+55,y+20,"#74eaff",3)}
+    if(n.includes("저주받은")){aura(c,x,y,"#8b35c8",38);c.fillStyle="#5c2281";c.font="12px monospace";c.fillText("⌁",x+3,y+16)}if(n.includes("폭발한")){c.fillStyle="#222";for(let i=0;i<6;i++)c.fillRect(x+9+(i*17)%49,y+5+(i*13)%54,7,7)}if(n.includes("바이러스")){c.fillStyle="#60d35a";for(let i=0;i<5;i++){c.beginPath();c.arc(x+4+(i*19)%62,y+(i*23)%61,5,0,Math.PI*2);c.fill()}}if(n.includes("독 변기")){c.fillStyle="#88e33d";c.fillRect(x+17,y+42,30,8);c.fillStyle="#c4ff77";c.fillRect(x+23,y+35,5,5)}if(n.includes("방사능")){c.fillStyle="#d8ff38";c.font="18px monospace";c.fillText("☢",x+22,y+32)}if(n.includes("감옥")){c.strokeStyle="#333";c.lineWidth=4;for(let i=0;i<5;i++)line(c,x+5+i*14,y-4,x+5+i*14,y+72,"#333",4)}
+    if(n.includes("악마")){c.fillStyle="#8e1c20";c.beginPath();c.moveTo(x+13,y+4);c.lineTo(x+3,y-20);c.lineTo(x+26,y+1);c.moveTo(x+48,y+4);c.lineTo(x+62,y-20);c.lineTo(x+38,y+1);c.fill()}if(n.includes("블랙홀")){aura(c,x,y,"#6b25a5",48);c.fillStyle="#000";c.beginPath();c.arc(x+32,y+35,22,0,Math.PI*2);c.fill()}if(n.includes("시간여행")){c.strokeStyle="#6de8ff";c.lineWidth=4;c.beginPath();c.arc(x+32,y+32,35,0,Math.PI*2);c.stroke();line(c,x+32,y+32,x+32,y+8,"#fff",3);line(c,x+32,y+32,x+50,y+38,"#fff",3)}if(n.includes("천사")){c.fillStyle="#fff";c.beginPath();c.ellipse(x-4,y+31,20,34,-.5,0,Math.PI*2);c.ellipse(x+68,y+31,20,34,.5,0,Math.PI*2);c.fill();c.strokeStyle="#ffe36b";c.lineWidth=5;c.beginPath();c.ellipse(x+32,y-9,20,7,0,0,Math.PI*2);c.stroke()}
+    if(n.includes("핵폐기물")){c.fillStyle="#b5ec26";c.fillRect(x+2,y+35,12,29);c.fillRect(x+51,y+30,12,34)}if(n.includes("슬라임")){c.save();c.globalAlpha=.55;c.fillStyle="#70db70";c.fillRect(x+5,y+4,55,68);c.restore()}if(n.includes("저승")){aura(c,x,y,"#111",43);c.fillStyle="#b9eaff";c.fillRect(x-7,y+9,8,26)}if(n.includes("얼어붙은 황금")){c.fillStyle="rgba(180,245,255,.6)";c.fillRect(x+3,y-2,60,68)}if(n.includes("슬롯머신")){c.fillStyle="#111";c.fillRect(x+13,y+6,40,20);c.fillStyle="#fff";c.font="bold 10px monospace";c.fillText("777",x+22,y+20);c.fillStyle="#e33";c.fillRect(x+59,y+11,5,30)}if(n.includes("심판")){c.fillStyle="#f0c94c";c.fillRect(x+57,y-5,4,60);line(c,x+44,y+4,x+74,y+4,"#f0c94c",3);c.strokeStyle="#f0c94c";c.strokeRect(x+42,y+8,12,8);c.strokeRect(x+67,y+8,12,8)}
+    if(n.includes("시바신")){aura(c,x,y,"#699cff",49);line(c,x+69,y-14,x+61,y+69,"#b9d6ff",5);c.fillStyle="#b9d6ff";c.fillRect(x+53,y-15,24,5);c.fillRect(x+62,y-25,5,20)}if(n.includes("바알제브")){aura(c,x,y,"#65142b",55);c.fillStyle="#231018";c.beginPath();c.ellipse(x-5,y+30,25,40,-.5,0,Math.PI*2);c.ellipse(x+69,y+30,25,40,.5,0,Math.PI*2);c.fill();c.fillStyle="#f33";for(let i=0;i<5;i++)c.fillRect(x+12+i*9,y+10+(i%2)*13,4,4)}
+    if(ch.rarity==="히든"){aura(c,x,y,n.includes("타락")?"#6d1d88":n.includes("해파이스토스")?"#ff6a24":"#ffd84e",45);if(n.includes("무지개")){const cs=["#f44","#fa4","#fd4","#5d5","#4bd","#75e","#b5d"];cs.forEach((v,i)=>{c.fillStyle=v;c.fillRect(x-10,y+7+i*7,12,5)})}if(n.includes("노예")){line(c,x-10,y+10,x+4,y+58,"#555",5);line(c,x+72,y+10,x+58,y+58,"#555",5)}if(n.includes("도박꾼")){c.fillStyle="#e33";c.fillRect(x+53,y+4,15,21);c.fillStyle="#fff";c.font="10px monospace";c.fillText("7",x+57,y+18)}if(n.includes("경마")){c.fillStyle="#7d3f1d";c.fillRect(x-8,y+26,17,28);c.fillStyle="#fff";c.font="bold 9px monospace";c.fillText("7",x-3,y+44);line(c,x-7,y+55,x-15,y+68,"#111",4);line(c,x+6,y+55,x+15,y+68,"#111",4)}if(n.includes("해파이스토스")){c.fillStyle="#ff8b2b";for(let i=0;i<4;i++){c.beginPath();c.moveTo(x+7+i*15,y+5);c.lineTo(x+13+i*15,y-17-(i%2)*5);c.lineTo(x+19+i*15,y+5);c.fill()}c.fillStyle="#555";c.fillRect(x+55,y+12,20,14);c.fillRect(x+62,y+26,6,31);c.fillStyle="#ffd04a";c.fillRect(x-8,y+17,7,7);c.fillRect(x+68,y-3,6,6)}}
+    if(ch.rarity==="레전더리")legendDetail(c,n,x,y);if(ch.rarity==="크툴루")outerDetail(c,n,x,y)
+  }
+  function greekHelm(c,x,y,royal=false){c.fillStyle="#111";c.fillRect(x+11,y-13,43,17);c.fillStyle=royal?"#e7b933":"#b7bcc6";c.fillRect(x+14,y-10,37,11);c.fillRect(x+29,y-24,7,14);for(let i=0;i<3;i++)c.fillRect(x+22+i*8,y-20-(i%2)*5,5,10)}
+  function legendDetail(c,n,x,y){aura(c,x,y,n.includes("라 변기")?"#ffd42a":n.includes("로키")?"#65ef78":"#79b9ff",43);
+    if(["오디세우스 변기","아가멤논 변기","키르케 변기","칼립소 변기","페넬로페 변기"].includes(n))greekHelm(c,x,y,n.includes("아가멤논"));
+    if(n.includes("오디세우스")){line(c,x+59,y+12,x+72,y+58,"#dfe8ef",4);c.fillStyle="#8d552d";c.fillRect(x-8,y+18,18,31)}
+    if(n.includes("아가멤논")){crown(c,x+15,y-26,"#e9bd36");line(c,x+58,y+2,x+72,y+61,"#ffe28a",5)}
+    if(n.includes("키르케")){line(c,x+59,y-8,x+68,y+60,"#8a4fc4",5);c.fillStyle="#ec8cff";c.beginPath();c.arc(x+58,y-11,9,0,Math.PI*2);c.fill();c.fillStyle="#eec45c";c.fillRect(x-5,y+35,14,11)}
+    if(n.includes("칼립소")){c.fillStyle="#42bfe5";for(let i=0;i<3;i++){c.beginPath();c.arc(x-3+i*31,y+63,13,Math.PI,0);c.fill()}c.fillStyle="#ff8fba";c.fillRect(x+52,y-5,9,9)}
+    if(n.includes("페넬로페")){c.strokeStyle="#df9abb";c.lineWidth=3;c.strokeRect(x-9,y+18,17,39);for(let yy=23;yy<55;yy+=7)line(c,x-7,y+yy,x+6,y+yy,"#f3d0df",2)}
+    if(n.includes("토르")){c.fillStyle="#b9dfff";c.fillRect(x+58,y+7,20,18);c.fillStyle="#6b7487";c.fillRect(x+55,y+10,18,14);c.fillRect(x+63,y+24,5,26);line(c,x+4,y-6,x-5,y+16,"#8ceaff",3);line(c,x-5,y+16,x+7,y+25,"#8ceaff",3)}
+    if(n.includes("오딘")){c.fillStyle="#111";c.fillRect(x+18,y+13,11,8);line(c,x+67,y-13,x+57,y+68,"#dbe7ee",4);c.fillStyle="#111";c.fillRect(x-9,y+5,10,7);c.fillRect(x-4,y-2,5,8);c.fillRect(x+57,y+3,10,7)}
+    if(n.includes("로키")){c.fillStyle="#d8b72d";c.beginPath();c.moveTo(x+14,y+2);c.quadraticCurveTo(x+4,y-23,x+18,y-27);c.lineTo(x+27,y+3);c.moveTo(x+48,y+2);c.quadraticCurveTo(x+61,y-23,x+47,y-27);c.lineTo(x+37,y+3);c.fill();c.fillStyle="#62ee78";c.beginPath();c.moveTo(x+57,y+49);c.lineTo(x+68,y+21);c.lineTo(x+75,y+52);c.fill()}
+    if(n.includes("라 변기")){c.strokeStyle="#ffc928";c.lineWidth=7;c.beginPath();c.arc(x+32,y-12,17,0,Math.PI*2);c.stroke();c.fillStyle="#ffc928";c.beginPath();c.arc(x+32,y-12,8,0,Math.PI*2);c.fill();line(c,x+64,y+2,x+63,y+66,"#e3b732",5);c.fillStyle="#52b6c7";c.fillRect(x+58,y+8,11,11)}
+  }
+  function outerDetail(c,n,x,y){const az=n.includes("아자토스");aura(c,x,y,az?"#8a20c7":"#28b47f",54);aura(c,x,y,az?"#251036":"#123d38",46);c.save();c.globalAlpha=.75;for(let i=0;i<10;i++){const a=performance.now()/900+i*.63,r=47+(i%3)*7;c.fillStyle=az?(i%2?"#b64cff":"#fff"): (i%2?"#57e8a8":"#b0ffe1");c.fillRect(x+30+Math.cos(a)*r,y+32+Math.sin(a)*r,4,4)}c.restore();
+    c.strokeStyle=az?"#8b35c8":"#2aa878";c.lineWidth=5;for(let i=0;i<6;i++){c.beginPath();c.moveTo(x+9+i*10,y+53);c.quadraticCurveTo(x-16+i*19,y+79,x-8+i*18,y+94);c.stroke()}
+    if(az){c.fillStyle="#111";for(let i=0;i<4;i++){c.beginPath();c.ellipse(x+9+i*15,y+18+(i%2)*13,7,4,0,0,Math.PI*2);c.fill();c.fillStyle="#efb8ff";c.fillRect(x+8+i*15,y+17+(i%2)*13,3,3);c.fillStyle="#111"}line(c,x-14,y-10,x+2,y+6,"#a34ee0",4);line(c,x+71,y-8,x+58,y+8,"#a34ee0",4)}else{c.fillStyle="#183d34";c.beginPath();c.moveTo(x+5,y+25);c.lineTo(x-27,y-2);c.lineTo(x-16,y+43);c.closePath();c.fill();c.beginPath();c.moveTo(x+58,y+25);c.lineTo(x+91,y-2);c.lineTo(x+79,y+43);c.closePath();c.fill();c.fillStyle="#b4ffda";c.fillRect(x+16,y+15,6,4);c.fillRect(x+43,y+15,6,4)}
+  }
+  drawCharacter=function(c,ch,x,y){characterShapeBase(c,ch,x,y);c.save();namedDecoration(c,ch,x,y);c.restore()};
+  const normalRoamingUpdate=updateRoaming;updateRoaming=function(){if(currentZone==="히든"){roamingCharacters.forEach((r,i)=>{r.x=42+(i%4)*96;r.y=185+Math.floor(i/4)*105;r.targetX=r.x;r.targetY=r.y;r.moving=false});return}normalRoamingUpdate()};
+  const rainbowTrail=[];const finalMainBase=drawMain;drawMain=function(){finalMainBase();if(has("무지개 변기")&&player.moving&&performance.now()%90<18)rainbowTrail.push({x:player.x+30,y:player.y+50,life:45,color:["#f44","#fa4","#fd4","#5d5","#4bd","#75e","#b5d"][rainbowTrail.length%7]});for(let i=rainbowTrail.length-1;i>=0;i--){const p=rainbowTrail[i];ctx.save();ctx.globalAlpha=p.life/45;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,7,7);ctx.restore();if(--p.life<=0)rainbowTrail.splice(i,1)}};
+  function drawHiddenGallery(){const hidden=characters.map((c,i)=>[c,i]).filter(([c])=>c.rarity==="히든"),w=mainCanvas.width;ctx.save();ctx.fillStyle="rgba(14,10,30,.92)";ctx.fillRect(0,118,w,mainCanvas.height-118);ctx.fillStyle="#e9cf62";ctx.fillRect(0,118,w,7);ctx.fillStyle="#fff";ctx.font="bold 13px monospace";ctx.textAlign="center";ctx.fillText("히든 변기 전시관",w/2,145);hidden.forEach(([c,i],n)=>{const col=n%4,row=Math.floor(n/4),cx=18+col*(w-36)/4,cy=165+row*112,unlocked=owned[i]>0||discovered[i];ctx.fillStyle="#111";ctx.fillRect(cx-4,cy+67,86,13);ctx.fillStyle=unlocked?"#d8bd58":"#555";ctx.fillRect(cx,cy+61,78,9);ctx.fillStyle=unlocked?"rgba(255,229,111,.13)":"rgba(0,0,0,.35)";ctx.fillRect(cx,cy,78,61);if(unlocked){ctx.save();ctx.translate(cx+10,cy-3);ctx.scale(.78,.78);drawCharacter(ctx,c,0,0);ctx.restore()}else{ctx.fillStyle="#111";ctx.fillRect(cx+24,cy+9,30,43);ctx.fillStyle="#999";ctx.font="bold 22px monospace";ctx.fillText("?",cx+39,cy+39)}ctx.fillStyle=unlocked?"#fff3a6":"#aaa";ctx.font="bold 8px monospace";ctx.fillText(unlocked?c.name:"미발견",cx+39,cy+84)});ctx.restore()}
+  const hiddenGalleryBase=drawMain;drawMain=function(){hiddenGalleryBase();if(currentZone==="히든")drawHiddenGallery()};
+
+  /* 등급마다 실루엣과 작동 방식이 다른 픽셀 뽑기 Canvas */
+  function pxRect(c,x,y,w,h,color,outline=true){if(outline){c.fillStyle="#111";c.fillRect(x-3,y-3,w+6,h+6)}c.fillStyle=color;c.fillRect(x,y,w,h)}
+  function pixelLabel(c,text,x,y,color="#111"){c.fillStyle=color;c.font="bold 12px monospace";c.textAlign="center";c.fillText(text,x,y)}
+  function seededParticles(c,cx,cy,color,count,spread,t){for(let i=0;i<count;i++){const a=i*2.399+t*(i%2?1:-1),r=18+(i*17)%spread;c.fillStyle=i%3?color:"#fff";c.fillRect(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r),i%4===0?5:3,i%4===0?5:3)}}
+  function machineCapsule(c,cx,y){if(gachaState==="falling")drawCapsule(c,cx,y,27);else if(gachaState==="ready")drawCapsule(c,cx,515,27)}
+  function drawNormalMachine(c,w,h,t){const x=w/2;
+    c.fillStyle="#c9c4b8";c.fillRect(0,0,w,h);for(let i=0;i<14;i++){c.fillStyle=i%2?"#aaa497":"#ded8ca";c.fillRect((i*79)%w,(i*43)%h,3,3)}
+    pxRect(c,x-105,225,210,315,"#9b6a45");pxRect(c,x-88,245,176,116,"#d6c3a8");c.fillStyle="#8eb4bd";c.fillRect(x-81,252,162,102);
+    for(let i=0;i<9;i++){c.fillStyle=["#b64e45","#d6b744","#648b78"][i%3];c.fillRect(x-67+(i%3)*48,267+Math.floor(i/3)*27,18,18)}
+    pxRect(c,x-55,385,110,65,"#705039");pxRect(c,x-14,397,28,35,"#d6b744");c.fillStyle="#493224";c.fillRect(x+70,390,48,10);c.fillRect(x+105,390,10,55);c.fillStyle="#d8c29a";c.fillRect(x+101,438,18,18);
+    pxRect(c,x-55,478,110,70,"#4c4038");pixelLabel(c,"OLD",x,472,"#fff0b5");machineCapsule(c,x,capsuleY)
+  }
+  function drawRareMachine(c,w,h,t){const x=w/2;c.fillStyle="#b9dcf0";c.fillRect(0,0,w,h);for(let y=80;y<h;y+=34){c.fillStyle="rgba(255,255,255,.28)";c.fillRect(0,y,w,2)}
+    pxRect(c,x-118,205,236,350,"#276da8");pxRect(c,x-99,228,198,132,"#102b49");c.fillStyle="#7ceaff";c.fillRect(x-91,236,182,116);
+    for(let i=0;i<10;i++){c.fillStyle=i%2?"#207fc0":"#d9fbff";c.fillRect(x-76+(i%5)*35,252+Math.floor(i/5)*50,20,20)}
+    pxRect(c,x-76,382,152,68,"#153d68");c.fillStyle="#78eeff";c.fillRect(x-58,398,116,8);c.fillRect(x-58,420,74,8);pxRect(c,x+39,411,27,27,"#eafcff");
+    pxRect(c,x-57,482,114,68,"#102d4d");c.strokeStyle="#87efff";c.lineWidth=3;c.strokeRect(x-107,214,214,332);seededParticles(c,x,325,"#65e8ff",8,105,t*.4);machineCapsule(c,x,capsuleY)
+  }
+  function drawEpicMachine(c,w,h,t){const x=w/2;c.fillStyle="#eadb9e";c.fillRect(0,0,w,h);c.fillStyle="#c69a22";for(let y=90;y<h;y+=48)c.fillRect(0,y,w,3);seededParticles(c,x,330,"#ffd84a",22,180,t);
+    pxRect(c,x-120,215,240,340,"#d29e16");c.fillStyle="#fff0a0";c.fillRect(x-108,229,216,25);c.fillRect(x-108,518,216,22);pxRect(c,x-92,260,184,105,"#6e4710");c.fillStyle="#ffe279";c.beginPath();c.arc(x,316,76,Math.PI,0);c.fill();
+    for(let i=0;i<8;i++){c.fillStyle=i%2?"#fff2aa":"#edb91f";c.fillRect(x-67+(i%4)*42,295+Math.floor(i/4)*31,20,20)}
+    pxRect(c,x-70,390,140,66,"#7a5010");c.fillStyle="#fff1a2";c.fillRect(x-49,408,98,12);pxRect(c,x+77,383,34,70,"#f5c62f");c.fillStyle="#fff5bd";c.fillRect(x+83,391,22,18);pxRect(c,x-58,480,116,65,"#6a460d");machineCapsule(c,x,capsuleY)
+  }
+  function crystal(c,cx,cy,size,color,split){c.fillStyle="#111";c.beginPath();c.moveTo(cx,cy-size-5);c.lineTo(cx+size+5,cy);c.lineTo(cx+size/2,cy+size+8);c.lineTo(cx-size/2,cy+size+8);c.lineTo(cx-size-5,cy);c.closePath();c.fill();c.fillStyle=color;c.beginPath();c.moveTo(cx,cy-size);c.lineTo(cx+size,cy);c.lineTo(cx+size/2,cy+size);c.lineTo(cx-size/2,cy+size);c.lineTo(cx-size,cy);c.closePath();c.fill();if(split){c.strokeStyle="#fff";c.lineWidth=4;c.beginPath();c.moveTo(cx+3,cy-size+8);c.lineTo(cx-6,cy-4);c.lineTo(cx+8,cy+10);c.lineTo(cx-2,cy+size-4);c.stroke()}}
+  function drawLegendAltar(c,w,h,t){const x=w/2;c.fillStyle="#18203d";c.fillRect(0,0,w,h);for(let i=0;i<26;i++){c.fillStyle=i%4?"#51659a":"#fff";c.fillRect((i*97)%w,70+(i*61)%(h-100),2,2)}seededParticles(c,x,300,"#a7f5ff",18,160,t*.5);
+    c.fillStyle="#252d55";c.beginPath();c.moveTo(20,550);c.lineTo(x,410);c.lineTo(w-20,550);c.fill();pxRect(c,x-145,492,290,56,"#42558b");pxRect(c,x-105,447,210,43,"#718bc0");pxRect(c,x-68,414,136,31,"#a8d8e8");
+    const opening=gachaState==="falling"||gachaState==="ready";crystal(c,x,292,82,opening?"#dfffff":"#75d9ed",opening);crystal(c,x-103,392,34,"#6dbcd8",false);crystal(c,x+103,392,34,"#6dbcd8",false);pixelLabel(c,opening?"수정이 갈라지고 있다":"수정 제단",x,585,"#dffaff");if(gachaState==="falling")drawCapsule(c,x,capsuleY,27);else if(gachaState==="ready")drawCapsule(c,x,410,27)
+  }
+  function drawCthulhuPortal(c,w,h,t){const x=w/2,cy=330;c.fillStyle="#07040f";c.fillRect(0,0,w,h);for(let i=0;i<48;i++){const tw=(Math.sin(t*3+i)+1)/2;c.fillStyle=i%7===0?`rgba(126,255,203,${.4+tw*.6})`:`rgba(190,150,255,${.25+tw*.5})`;c.fillRect((i*89)%w,55+(i*53)%(h-80),i%9===0?4:2,i%9===0?4:2)}
+    c.strokeStyle="#201032";c.lineWidth=32;c.beginPath();c.arc(x,cy,125,0,Math.PI*2);c.stroke();c.strokeStyle="#6e2e9f";c.lineWidth=18;c.beginPath();c.arc(x,cy,105,t,t+Math.PI*1.55);c.stroke();c.strokeStyle="#48c596";c.lineWidth=9;c.beginPath();c.arc(x,cy,83,-t*.7,-t*.7+Math.PI*1.45);c.stroke();
+    const grad=c.createRadialGradient(x,cy,5,x,cy,74);grad.addColorStop(0,"#000");grad.addColorStop(.55,"#170926");grad.addColorStop(1,"#4b176a");c.fillStyle=grad;c.beginPath();c.arc(x,cy,75,0,Math.PI*2);c.fill();
+    c.strokeStyle="#8b48c7";c.lineWidth=3;for(let i=0;i<7;i++){const a=i*Math.PI*2/7+t*.25;c.beginPath();c.moveTo(x+Math.cos(a)*132,cy+Math.sin(a)*132);c.lineTo(x+Math.cos(a+.25)*170,cy+Math.sin(a+.25)*170);c.stroke()}seededParticles(c,x,cy,"#70e9b4",18,145,-t);
+    c.fillStyle="#8aa1d4";c.beginPath();c.arc(x+128,cy-104,21,0,Math.PI*2);c.fill();c.fillStyle="#4f336e";c.beginPath();c.arc(x+121,cy-111,21,0,Math.PI*2);c.fill();pixelLabel(c,"심연의 우주 포털",x,545,"#aefcdb");if(gachaState==="falling")drawCapsule(c,x,cy,Math.max(8,27-(515-capsuleY)/18));else if(gachaState==="ready")drawCapsule(c,x,cy,27)
+  }
+  drawGacha=function(){const w=gachaCanvas.width,h=gachaCanvas.height,t=performance.now()/1000;gctx.clearRect(0,0,w,h);if(currentZone==="일반")drawNormalMachine(gctx,w,h,t);else if(currentZone==="레어")drawRareMachine(gctx,w,h,t);else if(currentZone==="에픽")drawEpicMachine(gctx,w,h,t);else if(currentZone==="레전더리")drawLegendAltar(gctx,w,h,t);else drawCthulhuPortal(gctx,w,h,t)};
+
+  const start=cloneButton("startButton");start.onclick=()=>{const input=document.getElementById("nameInput").value.trim();playerNameValue=input||"PLAYER";document.getElementById("playerName").textContent=playerNameValue;showScreen("main");save();updateUI()};
+  window.addEventListener("beforeunload",save);load();runAssetTax();evaluateHidden();checkTrophyAchievement();uniqueRoamers();updateUI();
+})();
+</script>
+
+</body>
+</html>
