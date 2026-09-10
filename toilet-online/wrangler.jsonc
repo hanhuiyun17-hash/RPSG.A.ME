@@ -3,8 +3,15 @@
   "name": "toilet-grow-online",
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
-  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
   "d1_databases": [
-    { "binding": "DB", "database_name": "toilet-online", "database_id": "REPLACE_WITH_D1_DATABASE_ID" }
+    {
+      "binding": "DB",
+      "database_name": "toilet-online",
+      "database_id": "8b6eaa90-419b-4d6a-868b-57a01ea025a6"
+    }
   ]
 }
